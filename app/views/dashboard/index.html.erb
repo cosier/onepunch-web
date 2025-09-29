@@ -1,0 +1,179 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Timer Widget -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8"
+       data-controller="timer"
+       data-timer-running-value="<%= @current_timer.present? %>"
+       data-timer-start-time-value="<%= @current_timer&.started_at&.iso8601 %>"
+       data-timer-entry-id-value="<%= @current_timer&.id %>">
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Time Tracker</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Timer Controls -->
+      <div class="space-y-4">
+        <div>
+          <label for="project-select" class="block text-sm font-medium text-gray-700 mb-2">
+            Select Project
+          </label>
+          <select data-timer-target="projectSelect"
+                  id="project-select"
+                  class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <option value="">Choose a project...</option>
+            <% @projects.each do |project| %>
+              <option value="<%= project.id %>"
+                      <%= 'selected' if @current_timer&.project_id == project.id %>>
+                <%= project.name %>
+              </option>
+            <% end %>
+          </select>
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+            Description (optional)
+          </label>
+          <input type="text"
+                 data-timer-target="description"
+                 id="description"
+                 class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                 placeholder="What are you working on?">
+        </div>
+      </div>
+
+      <!-- Timer Display -->
+      <div class="flex flex-col items-center justify-center">
+        <div data-timer-target="display"
+             class="text-6xl font-mono font-bold text-gray-900 mb-6">
+          <%= @current_timer&.running? ? "00:00:00" : "00:00:00" %>
+        </div>
+
+        <div class="space-x-4">
+          <button data-timer-target="startBtn"
+                  data-action="click->timer#start"
+                  class="<%= @current_timer&.running? ? 'hidden' : '' %> bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+              </svg>
+              <span>Start</span>
+            </div>
+          </button>
+
+          <button data-timer-target="stopBtn"
+                  data-action="click->timer#stop"
+                  class="<%= @current_timer&.running? ? '' : 'hidden' %> bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200">
+            <div class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+              </svg>
+              <span>Stop</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <% if @current_timer&.running? %>
+      <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+        <p class="text-sm text-green-800">
+          <strong>Currently tracking:</strong>
+          <%= @current_timer.project.name %>
+          <% if @current_timer.description.present? %>
+            - <%= @current_timer.description %>
+          <% end %>
+          <br>
+          <span class="text-xs text-green-600">
+            Started at <%= @current_timer.started_at.strftime("%I:%M %p") %>
+          </span>
+        </p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Today</h3>
+      <p class="text-3xl font-bold text-gray-900 mt-2">
+        <%= format_duration(@today_duration) %>
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">This Week</h3>
+      <p class="text-3xl font-bold text-gray-900 mt-2">
+        <%= format_duration(@week_duration) %>
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Active Projects</h3>
+      <p class="text-3xl font-bold text-gray-900 mt-2">
+        <%= @projects.count %>
+      </p>
+    </div>
+  </div>
+
+  <!-- Recent Time Entries -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
+        <%= link_to "View all", time_entries_path, class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+      </div>
+    </div>
+
+    <% if @recent_entries.any? %>
+      <div class="divide-y divide-gray-200">
+        <% @recent_entries.each do |entry| %>
+          <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center space-x-2">
+                  <span class="inline-block w-3 h-3 rounded-full"
+                        style="background-color: <%= entry.project.color || '#6B7280' %>"></span>
+                  <p class="text-sm font-semibold text-gray-900">
+                    <%= entry.project.name %>
+                  </p>
+                  <% if entry.billable? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      Billable
+                    </span>
+                  <% end %>
+                </div>
+                <% if entry.description.present? %>
+                  <p class="text-sm text-gray-600 mt-1"><%= entry.description %></p>
+                <% end %>
+                <p class="text-xs text-gray-500 mt-1">
+                  <%= entry.started_at.strftime("%b %d, %I:%M %p") %>
+                  <% unless entry.running? %>
+                    - <%= entry.ended_at&.strftime("%I:%M %p") %>
+                  <% end %>
+                </p>
+              </div>
+              <div class="text-right flex-shrink-0 ml-4">
+                <p class="text-lg font-semibold text-gray-900 font-mono">
+                  <%= entry.running? ? "Running..." : entry.formatted_duration %>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="px-6 py-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No time entries yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Start tracking your time to see entries here.</p>
+        <% if @projects.empty? %>
+          <div class="mt-6">
+            <%= link_to "Create a project", new_project_path,
+                class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

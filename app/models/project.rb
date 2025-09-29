@@ -2,6 +2,7 @@
 class Project < ApplicationRecord
   # Associations
   belongs_to :organization
+  belongs_to :client, optional: true
   has_many :time_entries, dependent: :destroy
   has_many :invoices, dependent: :nullify
   
@@ -13,6 +14,7 @@ class Project < ApplicationRecord
   
   # Scopes
   scope :active, -> { where(archived: false, status: :active) }
+  scope :archived, -> { where(archived: true) }
   scope :billable, -> { where.not(hourly_rate: nil) }
   
   # Callbacks

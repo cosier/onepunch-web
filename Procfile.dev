@@ -1,2 +1,2 @@
-web: PORT=2030 rails server
+web: rails server
 css: rails tailwindcss:watch

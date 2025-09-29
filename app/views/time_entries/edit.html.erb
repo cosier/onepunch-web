@@ -1,0 +1,80 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Edit Time Entry</h1>
+    <p class="text-gray-600 mt-1">Update your time entry details</p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-8">
+      <%= form_with model: @time_entry, local: true, class: "space-y-6" do |form| %>
+        <% if @time_entry.errors.any? %>
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="text-sm text-red-700">
+              <ul class="list-disc list-inside space-y-1">
+                <% @time_entry.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :project_id, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :project_id,
+                  options_from_collection_for_select(@projects, :id, :name, @time_entry.project_id),
+                  { prompt: "Select a project" },
+                  { required: true, class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" } %>
+          </div>
+
+          <div class="flex items-center">
+            <%= form.check_box :billable, class: "h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" %>
+            <%= form.label :billable, "Billable", class: "ml-2 block text-sm text-gray-900" %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :description,
+                rows: 3,
+                class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm",
+                placeholder: "What did you work on?" %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :started_at, "Start Time", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.datetime_local_field :started_at,
+                  value: @time_entry.started_at&.strftime("%Y-%m-%dT%H:%M"),
+                  required: true,
+                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+          </div>
+
+          <div>
+            <%= form.label :ended_at, "End Time", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.datetime_local_field :ended_at,
+                  value: @time_entry.ended_at&.strftime("%Y-%m-%dT%H:%M"),
+                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+            <p class="mt-1 text-xs text-gray-500">Leave empty for a running timer</p>
+          </div>
+        </div>
+
+        <% unless @time_entry.running? %>
+          <div class="bg-gray-50 rounded-md p-4">
+            <p class="text-sm text-gray-700">
+              <strong>Duration:</strong> <%= @time_entry.formatted_duration %>
+            </p>
+          </div>
+        <% end %>
+
+        <div class="flex justify-end space-x-4 pt-6">
+          <%= link_to "Cancel", time_entries_path,
+              class: "bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md" %>
+          <%= form.submit "Update Time Entry",
+              class: "bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

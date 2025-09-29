@@ -1,0 +1,157 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <span class="inline-block w-6 h-6 rounded-full"
+              style="background-color: <%= @project.color || '#6B7280' %>"></span>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900"><%= @project.name %></h1>
+          <% if @project.client.present? %>
+            <p class="text-gray-600 mt-1">Client: <%= @project.client.name %></p>
+          <% end %>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <%= link_to "Edit", edit_project_path(@project),
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <% unless @project.archived? %>
+          <%= link_to "Archive", archive_project_path(@project),
+              method: :patch,
+              data: { confirm: "Are you sure you want to archive this project?" },
+              class: "inline-flex items-center px-4 py-2 border border-yellow-300 shadow-sm text-sm font-medium rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Details -->
+  <div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4">
+      <dl class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1">
+            <% status_classes = {
+              'active' => 'bg-green-100 text-green-800',
+              'on_hold' => 'bg-yellow-100 text-yellow-800',
+              'completed' => 'bg-blue-100 text-blue-800'
+            } %>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_classes[@project.status.to_s] || 'bg-gray-100 text-gray-800' %>">
+              <%= @project.status&.humanize || 'Active' %>
+            </span>
+          </dd>
+        </div>
+
+        <% if @project.hourly_rate.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Hourly Rate</dt>
+            <dd class="mt-1 text-sm text-gray-900">$<%= @project.hourly_rate %></dd>
+          </div>
+        <% end %>
+
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Total Time</dt>
+          <dd class="mt-1 text-sm text-gray-900 font-mono">
+            <%= format_duration(@total_time) %>
+          </dd>
+        </div>
+
+        <% if @billable_time > 0 %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Billable Time</dt>
+            <dd class="mt-1 text-sm text-gray-900 font-mono">
+              <%= format_duration(@billable_time) %>
+            </dd>
+          </div>
+        <% end %>
+
+        <% if @project.hourly_rate.present? && @billable_time > 0 %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Estimated Value</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              $<%= number_with_precision((@billable_time.to_f / 3600) * @project.hourly_rate, precision: 2) %>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+
+      <% if @project.description.present? %>
+        <div class="mt-6">
+          <dt class="text-sm font-medium text-gray-500">Description</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= simple_format(@project.description) %></dd>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Time Entries -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
+        <%= link_to "View all entries", time_entries_path(project_id: @project.id),
+            class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+      </div>
+    </div>
+
+    <% if @time_entries.any? %>
+      <div class="divide-y divide-gray-200">
+        <% @time_entries.each do |entry| %>
+          <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center space-x-2 mb-1">
+                  <p class="text-sm font-medium text-gray-900">
+                    <%= entry.user.full_name %>
+                  </p>
+                  <% if entry.billable? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                      Billable
+                    </span>
+                  <% end %>
+                  <% if entry.running? %>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                      Running
+                    </span>
+                  <% end %>
+                </div>
+                <% if entry.description.present? %>
+                  <p class="text-sm text-gray-600 mb-1"><%= entry.description %></p>
+                <% end %>
+                <p class="text-xs text-gray-500">
+                  <%= entry.started_at.strftime("%b %d, %Y at %I:%M %p") %>
+                  <% unless entry.running? %>
+                    - <%= entry.ended_at&.strftime("%I:%M %p") %>
+                  <% end %>
+                </p>
+              </div>
+              <div class="text-right flex-shrink-0 ml-4">
+                <p class="text-lg font-semibold text-gray-900 font-mono">
+                  <%= entry.running? ? "Running..." : entry.formatted_duration %>
+                </p>
+                <% if entry.billable? && @project.hourly_rate.present? && !entry.running? %>
+                  <p class="text-xs text-gray-500">
+                    $<%= number_with_precision((entry.duration.to_f / 3600) * @project.hourly_rate, precision: 2) %>
+                  </p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="px-6 py-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No time entries yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Start tracking time on this project to see entries here.</p>
+        <div class="mt-6">
+          <%= link_to "Go to Dashboard", dashboard_path,
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -6,8 +6,8 @@ gem "rails", github: "rails/rails", branch: "main"
 # The original asset pipeline for Rails [https://github.com/rails/sprockets-rails]
 gem "sprockets-rails"
 
-# Use postgresql as the database for Active Record
-gem "pg", "~> 1.1"
+# Use sqlite3 as the database for Active Record
+gem "sqlite3", ">= 2.1"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 6.0"
@@ -52,7 +52,7 @@ gem "dotenv-rails", groups: [:development, :test]
 
 # Push Notifications
 gem "web-push"
-gem "serviceworker-rails"
+# gem "serviceworker-rails" # Incompatible with Rails 8.1/Rack 3.x
 
 # Background Jobs (Solid Suite for Rails 8)
 gem "solid_queue"

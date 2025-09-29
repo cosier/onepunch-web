@@ -1,50 +1,32 @@
-# PostgreSQL. Versions 9.3 and up are supported.
+# SQLite. Versions 3.8.0 and up are supported.
+#   gem install sqlite3
 #
-# Install the pg driver:
-#   gem install pg
-# On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
-# On Windows:
-#   gem install pg
-#       Choose the win32 build.
-#       Install PostgreSQL and put its /bin directory on your path.
-#
-# Configure Using Gemfile
-# gem "pg"
+# Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem "sqlite3"
 #
 default: &default
-  adapter: postgresql
-  encoding: unicode
-  # For details on connection pooling, see Rails configuration guide
-  # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("DATABASE_POOL") { 5 } %>
-  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
-  username: <%= ENV.fetch("DATABASE_USER") { "postgres" } %>
-  password: <%= ENV.fetch("DATABASE_PASSWORD") { "postgres" } %>
+  adapter: sqlite3
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
 
 development:
   <<: *default
-  database: onepunch_development
-  # Use DATABASE_URL if provided, otherwise use the default settings
-  <% if ENV["DATABASE_URL"].present? %>
-  url: <%= ENV["DATABASE_URL"] %>
-  <% end %>
+  database: storage/onepunch_development.sqlite3
 
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: onepunch_test
-  # Use a different database for parallel testing
-  <% if ENV["CI"] %>
-  database: onepunch_test_<%= ENV.fetch("TEST_ENV_NUMBER", "") %>
-  <% end %>
+  database: storage/onepunch_test.sqlite3
 
-# Production uses DATABASE_URL environment variable
+# SQLite3 write-ahead log for better concurrent performance in production
+# Enable the following options if needed:
 production:
   <<: *default
-  <% if ENV["DATABASE_URL"].present? %>
-  url: <%= ENV["DATABASE_URL"] %>
-  <% else %>
-  database: onepunch_production
-  username: onepunch
-  password: <%= ENV["ONEPUNCH_DATABASE_PASSWORD"] %>
-  <% end %>
+  database: storage/onepunch_production.sqlite3
+  # For better performance in production with SQLite
+  journal_mode: WAL
+  synchronous: NORMAL
+  cache_size: -64000
+  temp_store: MEMORY

@@ -1,0 +1,85 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Edit Project</h1>
+    <p class="text-gray-600 mt-1">Update project details</p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-8">
+      <%= form_with model: @project, local: true, class: "space-y-6" do |form| %>
+        <% if @project.errors.any? %>
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="text-sm text-red-700">
+              <ul class="list-disc list-inside space-y-1">
+                <% @project.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :name,
+                  required: true,
+                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm",
+                  placeholder: "Project name" %>
+          </div>
+
+          <div>
+            <%= form.label :client_id, "Client", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.select :client_id,
+                  options_from_collection_for_select(@clients, :id, :name, @project.client_id),
+                  { prompt: "Select a client (optional)" },
+                  { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" } %>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_area :description,
+                rows: 3,
+                class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm",
+                placeholder: "Project description (optional)" %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <%= form.label :hourly_rate, "Hourly Rate ($)", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.number_field :hourly_rate,
+                  step: 0.01,
+                  min: 0,
+                  class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm",
+                  placeholder: "0.00" %>
+          </div>
+
+          <div>
+            <%= form.label :color, "Project Color", class: "block text-sm font-medium text-gray-700" %>
+            <div class="mt-1 flex items-center space-x-2">
+              <%= form.color_field :color,
+                    class: "block w-16 h-10 border border-gray-300 rounded-md" %>
+              <span class="text-sm text-gray-500">Choose a color to identify this project</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <%= form.label :status, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :status,
+                [["Active", "active"], ["On Hold", "on_hold"], ["Completed", "completed"]],
+                { selected: @project.status },
+                { class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" } %>
+        </div>
+
+        <div class="flex justify-end space-x-4 pt-6">
+          <%= link_to "Cancel", project_path(@project),
+              class: "bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md" %>
+          <%= form.submit "Update Project",
+              class: "bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

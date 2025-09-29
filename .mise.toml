@@ -11,8 +11,8 @@ postgres = "15"
 RAILS_ENV = "development"
 NODE_ENV = "development"
 
-# Database URL
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/onepunch_development"
+# Database URL (commented out - using SQLite now)
+# DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/onepunch_development"
 
 # Redis URL for ActionCable, caching, and background jobs
 REDIS_URL = "redis://localhost:6379/1"

@@ -1,0 +1,6 @@
+<%# Remove the deleted entry from the list %>
+<%= turbo_stream.remove(@time_entry) %>
+
+<%# Show success message %>
+<%= turbo_stream.prepend "flash", partial: "shared/flash",
+    locals: { notice: "Time entry deleted successfully.", alert: nil } %>

@@ -2,7 +2,7 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
-  helper_method :current_user, :logged_in?, :current_organization
+  helper_method :current_user, :logged_in?, :current_organization, :user_signed_in?
 
   private
 
@@ -14,6 +14,11 @@ class ApplicationController < ActionController::Base
     current_user.present?
   end
 
+  # Alias for compatibility with common Rails conventions
+  def user_signed_in?
+    logged_in?
+  end
+
   def current_organization
     @current_organization ||= current_user&.current_organization
   end
@@ -21,6 +26,14 @@ class ApplicationController < ActionController::Base
   def authenticate_user!
     unless logged_in?
       redirect_to login_path, alert: "Please log in to continue"
+    end
+  end
+
+  def after_sign_in_path_for(user)
+    if user.needs_onboarding?
+      new_onboarding_path
+    else
+      dashboard_path
     end
   end
 

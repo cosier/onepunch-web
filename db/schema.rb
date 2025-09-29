@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_09_29_104946) do
+ActiveRecord::Schema[8.1].define(version: 2025_09_29_131110) do
   create_table "clients", force: :cascade do |t|
     t.text "address"
     t.string "company"
@@ -22,6 +22,22 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_104946) do
     t.string "tax_id"
     t.datetime "updated_at", null: false
     t.index ["organization_id"], name: "index_clients_on_organization_id"
+  end
+
+  create_table "invitations", force: :cascade do |t|
+    t.datetime "accepted_at"
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "expires_at"
+    t.integer "invited_by_id"
+    t.integer "organization_id", null: false
+    t.string "role", default: "member"
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invited_by_id"], name: "index_invitations_on_invited_by_id"
+    t.index ["organization_id", "email"], name: "index_invitations_on_organization_id_and_email"
+    t.index ["organization_id"], name: "index_invitations_on_organization_id"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
   end
 
   create_table "invoice_line_items", force: :cascade do |t|
@@ -71,22 +87,48 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_104946) do
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
+  create_table "organization_settings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.string "date_format"
+    t.decimal "default_hourly_rate"
+    t.integer "invoice_counter"
+    t.string "invoice_prefix"
+    t.boolean "notification_email"
+    t.boolean "notification_slack"
+    t.integer "organization_id", null: false
+    t.decimal "tax_rate"
+    t.string "time_zone"
+    t.datetime "updated_at", null: false
+    t.index ["organization_id"], name: "index_organization_settings_on_organization_id"
+  end
+
   create_table "organizations", force: :cascade do |t|
     t.text "address"
     t.string "billing_email"
     t.datetime "created_at", null: false
     t.string "currency", default: "USD"
+    t.string "industry"
+    t.boolean "is_personal", default: false, null: false
+    t.string "logo_url"
     t.string "name", null: false
+    t.datetime "onboarded_at"
+    t.text "settings"
+    t.string "size"
     t.string "slug", null: false
+    t.string "subscription_status", default: "trial"
     t.string "tax_id"
     t.string "timezone", default: "UTC"
+    t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
+    t.string "website"
+    t.index ["is_personal"], name: "index_organizations_on_is_personal"
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
   create_table "projects", force: :cascade do |t|
     t.boolean "archived", default: false
-    t.integer "client_id", null: false
+    t.integer "client_id"
     t.string "color"
     t.datetime "created_at", null: false
     t.text "description"
@@ -121,6 +163,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_104946) do
   create_table "users", force: :cascade do |t|
     t.string "avatar_url"
     t.datetime "created_at", null: false
+    t.integer "current_organization_id"
     t.string "email", null: false
     t.string "first_name"
     t.string "google_uid"
@@ -129,19 +172,25 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_104946) do
     t.string "password_digest"
     t.integer "role", default: 0
     t.datetime "updated_at", null: false
+    t.index ["current_organization_id"], name: "index_users_on_current_organization_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "google_uid IS NOT NULL"
+    t.index ["id", "current_organization_id"], name: "index_users_on_id_and_current_organization_id"
   end
 
   add_foreign_key "clients", "organizations"
+  add_foreign_key "invitations", "organizations"
+  add_foreign_key "invitations", "users", column: "invited_by_id"
   add_foreign_key "invoice_line_items", "invoices"
   add_foreign_key "invoices", "clients"
   add_foreign_key "invoices", "organizations"
   add_foreign_key "invoices", "projects"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
+  add_foreign_key "organization_settings", "organizations"
   add_foreign_key "projects", "clients"
   add_foreign_key "projects", "organizations"
   add_foreign_key "time_entries", "projects"
   add_foreign_key "time_entries", "users"
+  add_foreign_key "users", "organizations", column: "current_organization_id"
 end

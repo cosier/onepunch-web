@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.4.5'
+        bundler-cache: true
+
+    - name: Setup test database
+      env:
+        RAILS_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/onepunch_test
+      run: |
+        bundle exec rails db:create
+        bundle exec rails db:schema:load
+
+    - name: Run tests
+      env:
+        RAILS_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/onepunch_test
+      run: bundle exec rails test
+
+    - name: Run security checks
+      run: bundle exec brakeman
+
+    - name: Run linter
+      run: bundle exec rubocop

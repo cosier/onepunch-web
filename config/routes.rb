@@ -25,12 +25,46 @@ Rails.application.routes.draw do
   # Dashboard
   get "/dashboard", to: "dashboard#index"
 
+  # Settings routes
+  get "/settings", to: "settings#index"
+  namespace :settings do
+    get :organization
+    get :profile
+    get :billing
+  end
+
+  # Organization routes
+  resources :organizations do
+    resources :members, controller: 'organization_members'
+    resources :invitations, controller: 'organization_invitations'
+  end
+
+  # Organization switcher
+  patch "/switch_organization/:id", to: "organization_switcher#switch", as: :switch_organization
+
+  # Onboarding routes
+  resource :onboarding, only: [:new, :create] do
+    member do
+      patch :update
+      post :complete
+    end
+  end
+
+  # Invitation acceptance
+  get "/invitations/:token", to: "invitations#show", as: :invitation
+  post "/invitations/:token/accept", to: "invitations#accept", as: :accept_invitation
+
   # Timer routes
   post "/timer/start", to: "timer#start"
   post "/timer/stop/:id", to: "timer#stop"
 
   # Resource routes
-  resources :time_entries
+  resources :time_entries do
+    member do
+      post :stop
+      post :resume
+    end
+  end
   resources :projects do
     member do
       patch :archive

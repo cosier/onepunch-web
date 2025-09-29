@@ -45,12 +45,17 @@
               </div>
 
               <div class="mt-6 flex items-center justify-between">
-                <div class="flex space-x-2">
+                <div class="flex items-center space-x-2">
+                  <!-- Quick Timer Button -->
+                  <%= render "shared/timer_button",
+                      project: project,
+                      icon_only: true,
+                      size: "small" %>
+
                   <%= link_to "Edit", edit_project_path(project),
                       class: "text-indigo-600 hover:text-indigo-500 text-sm font-medium" %>
                   <%= link_to "Archive", archive_project_path(project),
-                      method: :patch,
-                      data: { confirm: "Are you sure you want to archive this project?" },
+                      data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to archive this project?" },
                       class: "text-yellow-600 hover:text-yellow-500 text-sm font-medium" %>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -103,12 +108,10 @@
                   </span>
                   <div class="flex space-x-2">
                     <%= link_to "Unarchive", archive_project_path(project),
-                        method: :patch,
-                        data: { confirm: "Are you sure you want to unarchive this project?" },
+                        data: { turbo_method: :patch, turbo_confirm: "Are you sure you want to unarchive this project?" },
                         class: "text-green-600 hover:text-green-500 text-sm font-medium" %>
                     <%= link_to "Delete", project_path(project),
-                        method: :delete,
-                        data: { confirm: "Are you sure you want to permanently delete this project? This action cannot be undone." },
+                        data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to permanently delete this project? This action cannot be undone." },
                         class: "text-red-600 hover:text-red-500 text-sm font-medium" %>
                   </div>
                 </div>

@@ -13,6 +13,9 @@
         </div>
       </div>
       <div class="flex items-center space-x-4">
+        <!-- Timer Start Button -->
+        <%= render "shared/timer_button", project: @project %>
+
         <%= link_to "Edit", edit_project_path(@project),
             class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
         <% unless @project.archived? %>
@@ -22,6 +25,126 @@
               class: "inline-flex items-center px-4 py-2 border border-yellow-300 shadow-sm text-sm font-medium rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
         <% end %>
       </div>
+    </div>
+  </div>
+
+  <!-- Analytics Dashboard -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Today's Hours -->
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-purple-100">Today</h3>
+        <svg class="h-5 w-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@today_hours, precision: 1) %></p>
+      <p class="text-xs text-purple-200 mt-1">hours tracked</p>
+    </div>
+
+    <!-- This Week -->
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-blue-100">This Week</h3>
+        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@current_week_hours, precision: 1) %></p>
+      <p class="text-xs text-blue-200 mt-1">hours (<%= number_with_precision(@current_week_billable, precision: 1) %> billable)</p>
+    </div>
+
+    <!-- This Month -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-green-100">This Month</h3>
+        <svg class="h-5 w-5 text-green-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@current_month_hours, precision: 1) %></p>
+      <p class="text-xs text-green-200 mt-1">hours (<%= number_with_precision(@current_month_billable, precision: 1) %> billable)</p>
+      <% if @project.hourly_rate.present? && @current_month_billable > 0 %>
+        <div class="mt-3 pt-3 border-t border-green-400">
+          <p class="text-sm text-green-100">Revenue</p>
+          <p class="text-xl font-semibold">$<%= number_with_precision(@current_month_billable * @project.hourly_rate, precision: 2) %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Weekly Breakdown Chart -->
+  <div class="bg-white rounded-xl shadow-lg mb-8 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-6">Weekly Activity</h3>
+    <div class="h-64 flex items-end justify-between space-x-2">
+      <% max_hours = @weekly_breakdown.map { |w| w[:hours] }.max.to_f %>
+      <% max_hours = 1 if max_hours == 0 %>
+      <% @weekly_breakdown.each do |week| %>
+        <div class="flex-1 flex flex-col items-center">
+          <div class="w-full flex flex-col items-center space-y-1">
+            <% if week[:billable_hours] > 0 || week[:hours] > 0 %>
+              <div class="relative w-full flex flex-col items-center">
+                <!-- Total hours bar -->
+                <div class="w-12 bg-gradient-to-t from-indigo-500 to-indigo-400 rounded-t transition-all hover:from-indigo-600 hover:to-indigo-500"
+                     style="height: <%= [(week[:hours] / max_hours * 200).to_i, 4].max %>px"
+                     title="<%= week[:hours].round(1) %> total hours">
+                  <!-- Billable hours overlay -->
+                  <% if week[:billable_hours] > 0 %>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-green-500 to-green-400 rounded-t"
+                         style="height: <%= (week[:billable_hours] / week[:hours] * 100).to_i %>%"
+                         title="<%= week[:billable_hours].round(1) %> billable hours">
+                    </div>
+                  <% end %>
+                </div>
+                <span class="text-xs text-gray-600 mt-1 font-semibold"><%= week[:hours].round(1) %></span>
+              </div>
+            <% else %>
+              <div class="w-12 h-1 bg-gray-200 rounded"></div>
+              <span class="text-xs text-gray-400 mt-1">0</span>
+            <% end %>
+          </div>
+          <span class="text-xs text-gray-500 mt-2"><%= week[:week] %></span>
+        </div>
+      <% end %>
+    </div>
+    <div class="flex items-center justify-center mt-6 space-x-6 text-xs">
+      <div class="flex items-center">
+        <div class="w-3 h-3 bg-gradient-to-br from-indigo-500 to-indigo-400 rounded mr-2"></div>
+        <span class="text-gray-600">Total Hours</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-3 h-3 bg-gradient-to-br from-green-500 to-green-400 rounded mr-2"></div>
+        <span class="text-gray-600">Billable Hours</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Grid -->
+  <div class="bg-white rounded-xl shadow-lg mb-8 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-6">Monthly Overview - <%= Date.current.year %></h3>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+      <% @monthly_breakdown.each do |month| %>
+        <div class="relative group">
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 hover:shadow-md transition-all hover:scale-105">
+            <h4 class="text-xs font-medium text-gray-600 mb-2"><%= month[:month] %></h4>
+            <p class="text-lg font-bold text-gray-900"><%= month[:hours].round(1) %></p>
+            <p class="text-xs text-gray-500">hours</p>
+            <% if month[:hours] > 0 %>
+              <div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-green-600"><%= ((month[:billable_hours] / month[:hours]) * 100).round %>%</span>
+                  <span class="text-xs text-gray-500">billable</span>
+                </div>
+                <!-- Visual indicator bar -->
+                <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-green-400 to-green-500"
+                       style="width: <%= ((month[:billable_hours] / month[:hours]) * 100).round %>%"></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 
@@ -85,62 +208,25 @@
     </div>
   </div>
 
-  <!-- Recent Time Entries -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
-        <%= link_to "View all entries", time_entries_path(project_id: @project.id),
-            class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+  <!-- Recent Time Entries with Modal -->
+  <div data-controller="modal">
+    <!-- Time Entries Section -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
+          <%= link_to "View all entries", time_entries_path(project_id: @project.id),
+              class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+        </div>
       </div>
-    </div>
 
-    <% if @time_entries.any? %>
-      <div class="divide-y divide-gray-200">
-        <% @time_entries.each do |entry| %>
-          <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <div class="flex items-center space-x-2 mb-1">
-                  <p class="text-sm font-medium text-gray-900">
-                    <%= entry.user.full_name %>
-                  </p>
-                  <% if entry.billable? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                      Billable
-                    </span>
-                  <% end %>
-                  <% if entry.running? %>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                      Running
-                    </span>
-                  <% end %>
-                </div>
-                <% if entry.description.present? %>
-                  <p class="text-sm text-gray-600 mb-1"><%= entry.description %></p>
-                <% end %>
-                <p class="text-xs text-gray-500">
-                  <%= entry.started_at.strftime("%b %d, %Y at %I:%M %p") %>
-                  <% unless entry.running? %>
-                    - <%= entry.ended_at&.strftime("%I:%M %p") %>
-                  <% end %>
-                </p>
-              </div>
-              <div class="text-right flex-shrink-0 ml-4">
-                <p class="text-lg font-semibold text-gray-900 font-mono">
-                  <%= entry.running? ? "Running..." : entry.formatted_duration %>
-                </p>
-                <% if entry.billable? && @project.hourly_rate.present? && !entry.running? %>
-                  <p class="text-xs text-gray-500">
-                    $<%= number_with_precision((entry.duration.to_f / 3600) * @project.hourly_rate, precision: 2) %>
-                  </p>
-                <% end %>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    <% else %>
+      <% if @time_entries.any? %>
+        <div id="time-entries-list" class="divide-y divide-gray-200">
+          <% @time_entries.each do |entry| %>
+            <%= render "time_entries/entry_card", entry: entry %>
+          <% end %>
+        </div>
+      <% else %>
       <div class="px-6 py-12 text-center">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -153,5 +239,9 @@
         </div>
       </div>
     <% end %>
+    </div>
+
+    <!-- Include the modal inside the controller scope -->
+    <%= render "shared/modal" %>
   </div>
 </div>

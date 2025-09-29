@@ -1,0 +1,103 @@
+<%
+  # Default values - can be overridden by passing locals
+  project ||= @project
+  description ||= nil
+  button_text ||= "Start Timer"
+  icon_only ||= false
+  size ||= "normal"
+
+  # Check if there's a running timer for this project
+  running_entry = current_user.time_entries.running.where(project: project).first if project
+  is_running = running_entry.present?
+
+  # Check if there's ANY running timer
+  any_running = current_user.time_entries.running.exists?
+
+  # Determine button appearance based on state
+  if is_running
+    button_text = icon_only ? "" : "Timer Running"
+    button_class = "inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-lg"
+    action = :stop
+    timer_id = running_entry.id
+  else
+    button_text = icon_only ? "" : (any_running ? "Switch Timer" : "Start Timer")
+    button_class = "inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-all hover:shadow-lg transform hover:scale-105"
+    action = :start
+    timer_id = nil
+  end
+
+  # Adjust classes based on size
+  case size
+  when "small"
+    if is_running
+      button_class = "inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-md shadow-md hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-lg"
+    else
+      button_class = "inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-md shadow-md hover:from-green-600 hover:to-green-700 transition-all hover:shadow-lg"
+    end
+    svg_class = "w-4 h-4"
+  when "large"
+    if is_running
+      button_class = "inline-flex items-center px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-lg font-medium rounded-xl shadow-lg hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-xl"
+    else
+      button_class = "inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white text-lg font-medium rounded-xl shadow-lg hover:from-green-600 hover:to-green-700 transition-all hover:shadow-xl transform hover:scale-105"
+    end
+    svg_class = "w-6 h-6"
+  else
+    svg_class = "w-5 h-5"
+  end
+
+  # If icon_only, adjust button padding
+  if icon_only
+    button_class = button_class.gsub(/px-\d+/, 'p-2')
+  end
+
+  # Build intelligent description if not provided and starting
+  if description.nil? && project && action == :start
+    last_entry = project.time_entries.where(user: current_user).order(started_at: :desc).first
+    description = last_entry&.description || "Working on #{project.name}"
+  end
+%>
+
+<div id="timer_button_<%= project&.id || 'global' %>">
+  <% if is_running %>
+    <!-- Stop Timer Button -->
+    <%= button_to stop_time_entry_path(running_entry),
+        method: :post,
+        form: {
+          data: {
+            turbo: true
+          }
+        },
+        class: button_class,
+        title: "Stop timer" do %>
+      <svg class="<%= svg_class %> <%= icon_only ? '' : 'mr-2' %>" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+      </svg>
+      <% unless icon_only %>
+        <span><%= button_text %></span>
+      <% end %>
+    <% end %>
+  <% else %>
+    <!-- Start Timer Button -->
+    <%= button_to timer_start_path,
+        method: :post,
+        params: {
+          project_id: project&.id,
+          description: description
+        },
+        form: {
+          data: {
+            turbo: true
+          }
+        },
+        class: button_class,
+        title: project ? "Start timer for #{project.name}" : "Start timer" do %>
+      <svg class="<%= svg_class %> <%= icon_only ? '' : 'mr-2' %>" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+      </svg>
+      <% unless icon_only %>
+        <span><%= button_text %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

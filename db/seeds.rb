@@ -4,32 +4,86 @@
 
 puts "🌱 Seeding database..."
 
-# Create demo user
-user = User.find_or_create_by!(email: "demo@onepunch.app") do |u|
+# Create demo users
+user1 = User.find_or_create_by!(email: "demo@onepunch.app") do |u|
   u.password = "password123"
-  u.password_confirmation = "password123"
   u.first_name = "Demo"
   u.last_name = "User"
 end
 
-puts "✅ Created user: #{user.email}"
+user2 = User.find_or_create_by!(email: "john@example.com") do |u|
+  u.password = "password123"
+  u.first_name = "John"
+  u.last_name = "Doe"
+  u.role = "user"
+  u.last_sign_in_at = 1.hour.ago
+end
 
-# Create demo organization
-org = Organization.find_or_create_by!(name: "Demo Company") do |o|
+user3 = User.find_or_create_by!(email: "jane@example.com") do |u|
+  u.password = "password123"
+  u.first_name = "Jane"
+  u.last_name = "Smith"
+  u.role = "admin"
+  u.last_sign_in_at = 2.days.ago
+end
+
+puts "✅ Created users: #{user1.email}, #{user2.email}, #{user3.email}"
+
+# Create demo organizations
+org1 = Organization.find_or_create_by!(name: "Demo Company") do |o|
   o.slug = "demo-company"
   o.billing_email = "billing@democompany.com"
-  o.timezone = "UTC"
+  o.timezone = "America/New_York"
+  o.currency = "USD"
+  o.industry = "technology"
+  o.size = "small"
+  o.onboarded_at = 1.month.ago
 end
 
-puts "✅ Created organization: #{org.name}"
+org2 = Organization.find_or_create_by!(name: "Creative Studio") do |o|
+  o.slug = "creative-studio"
+  o.billing_email = "hello@creative.com"
+  o.timezone = "America/Los_Angeles"
+  o.currency = "USD"
+  o.industry = "design"
+  o.size = "medium"
+  o.onboarded_at = 2.weeks.ago
+end
 
-# Create membership
-membership = Membership.find_or_create_by!(user: user, organization: org) do |m|
+puts "✅ Created organizations: #{org1.name}, #{org2.name}"
+
+# Create memberships - user1 is in both orgs
+membership1 = Membership.find_or_create_by!(user: user1, organization: org1) do |m|
   m.role = "owner"
-  m.joined_at = Time.current
+  m.joined_at = org1.created_at
 end
 
-puts "✅ Created membership for #{user.full_name}"
+membership2 = Membership.find_or_create_by!(user: user1, organization: org2) do |m|
+  m.role = "admin"
+  m.joined_at = 2.weeks.ago
+end
+
+# User2 and user3 in org1
+membership3 = Membership.find_or_create_by!(user: user2, organization: org1) do |m|
+  m.role = "admin"
+  m.joined_at = 3.weeks.ago
+end
+
+membership4 = Membership.find_or_create_by!(user: user3, organization: org1) do |m|
+  m.role = "member"
+  m.joined_at = 1.week.ago
+end
+
+# Set current organizations
+user1.update!(current_organization: org1) if user1.current_organization.nil?
+user2.update!(current_organization: org1) if user2.current_organization.nil?
+user3.update!(current_organization: org1) if user3.current_organization.nil?
+
+# Use org1 for the rest of the seed data
+org = org1
+user = user1
+
+puts "✅ Created memberships and set current organizations"
 
 # Create demo clients
 client1 = Client.find_or_create_by!(name: "Acme Corp", organization: org) do |c|
@@ -148,6 +202,29 @@ end
 
 puts "✅ Created #{time_entries_data.length} sample time entries"
 
+# Create pending invitations
+invitation1 = Invitation.find_or_create_by!(
+  organization: org1,
+  email: "newmember@example.com"
+) do |i|
+  i.role = "member"
+  i.invited_by = user1
+  i.token = SecureRandom.urlsafe_base64(32)
+  i.expires_at = 7.days.from_now
+end
+
+invitation2 = Invitation.find_or_create_by!(
+  organization: org2,
+  email: "designer@example.com"
+) do |i|
+  i.role = "admin"
+  i.invited_by = user1
+  i.token = SecureRandom.urlsafe_base64(32)
+  i.expires_at = 7.days.from_now
+end
+
+puts "✅ Created pending invitations"
+
 # Summary
 total_time = TimeEntry.sum(:duration)
 billable_time = TimeEntry.billable.sum(:duration)
@@ -157,10 +234,17 @@ puts "🎉 Database seeding completed!"
 puts "📊 Summary:"
 puts "   - Users: #{User.count}"
 puts "   - Organizations: #{Organization.count}"
+puts "   - Memberships: #{Membership.count}"
 puts "   - Projects: #{Project.count} (#{Project.active.count} active)"
 puts "   - Clients: #{Client.count}"
 puts "   - Time Entries: #{TimeEntry.count}"
+puts "   - Invitations: #{Invitation.count} pending"
 puts "   - Total Time Tracked: #{ApplicationController.helpers.format_duration(total_time)}"
 puts "   - Billable Time: #{ApplicationController.helpers.format_duration(billable_time)}"
 puts ""
-puts "🚀 Login with: demo@onepunch.app / password123"
+puts "🚀 Test Accounts:"
+puts "   - demo@onepunch.app / password123 (Owner of Demo Company + Admin of Creative Studio)"
+puts "   - john@example.com / password123 (Admin of Demo Company)"
+puts "   - jane@example.com / password123 (Member of Demo Company)"
+puts ""
+puts "📌 Use Cmd+K to quickly switch between organizations!"

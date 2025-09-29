@@ -1,0 +1,90 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="bg-white shadow rounded-lg">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h1 class="text-2xl font-bold text-gray-900">Create New Organization</h1>
+      <p class="mt-1 text-sm text-gray-600">Set up a new business organization for your team</p>
+    </div>
+
+    <%= form_with(model: @organization, local: true) do |form| %>
+      <div class="p-6 space-y-6">
+        <% if @organization.errors.any? %>
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                  There were <%= pluralize(@organization.errors.count, "error") %> with your submission
+                </h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul class="list-disc space-y-1 pl-5">
+                    <% @organization.errors.full_messages.each do |message| %>
+                      <li><%= message %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <div>
+          <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.text_field :name,
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm",
+              placeholder: "e.g., Acme Corp" %>
+        </div>
+
+        <div>
+          <%= form.label :size, "Organization Size", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :size,
+              options_for_select([
+                ['Solo (Just me)', 'solo'],
+                ['Small (2-10 people)', 'small'],
+                ['Medium (11-50 people)', 'medium'],
+                ['Large (50+ people)', 'large']
+              ]),
+              { prompt: 'Select organization size' },
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :currency, class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :currency,
+              options_for_select([
+                ['USD - US Dollar', 'USD'],
+                ['EUR - Euro', 'EUR'],
+                ['GBP - British Pound', 'GBP'],
+                ['CAD - Canadian Dollar', 'CAD'],
+                ['AUD - Australian Dollar', 'AUD']
+              ], 'USD'),
+              {},
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+        </div>
+
+        <div>
+          <%= form.label :timezone, "Time Zone", class: "block text-sm font-medium text-gray-700" %>
+          <%= form.select :timezone,
+              options_for_select([
+                ['UTC', 'UTC'],
+                ['Eastern Time (US & Canada)', 'America/New_York'],
+                ['Central Time (US & Canada)', 'America/Chicago'],
+                ['Mountain Time (US & Canada)', 'America/Denver'],
+                ['Pacific Time (US & Canada)', 'America/Los_Angeles'],
+                ['London', 'Europe/London'],
+                ['Paris', 'Europe/Paris'],
+                ['Tokyo', 'Asia/Tokyo'],
+                ['Bangkok (+07:00)', 'Asia/Bangkok']
+              ], 'UTC'),
+              {},
+              class: "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
+        <%= link_to "Cancel", dashboard_path,
+            class: "px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <%= form.submit "Create Organization",
+            class: "px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+    <% end %>
+  </div>
+</div>

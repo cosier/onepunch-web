@@ -1,0 +1,15 @@
+<%# Prepend the new running timer to the top of the list %>
+<%= turbo_stream.prepend "time-entries-list" do %>
+  <%= render "time_entries/entry_card", entry: @time_entry %>
+<% end %>
+
+<%# Show success message %>
+<%= turbo_stream.prepend "flash", partial: "shared/flash",
+    locals: { notice: "Timer resumed successfully.", alert: nil } %>
+
+<%# Optionally refresh the timer widget if on dashboard %>
+<% if params[:from] == "dashboard" %>
+  <%= turbo_stream.replace "timer-status" do %>
+    <%= render "dashboard/timer_status", current_timer: @time_entry %>
+  <% end %>
+<% end %>

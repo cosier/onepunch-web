@@ -29,12 +29,16 @@
     <% if logged_in? %>
       <%= render 'shared/navbar' %>
       <main class="min-h-screen">
-        <%= render 'shared/flash_messages' if flash.any? %>
+        <div id="flash" class="fixed top-16 right-4 z-40 space-y-2">
+          <%= render 'shared/flash_messages' if flash.any? %>
+        </div>
         <%= yield %>
       </main>
     <% else %>
       <main class="min-h-screen">
-        <%= render 'shared/flash_messages' if flash.any? %>
+        <div id="flash" class="fixed top-16 right-4 z-40 space-y-2">
+          <%= render 'shared/flash_messages' if flash.any? %>
+        </div>
         <%= yield %>
       </main>
     <% end %>

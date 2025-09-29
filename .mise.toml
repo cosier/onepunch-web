@@ -1,0 +1,31 @@
+# OnePunch - Time Tracking & Invoicing App
+# mise configuration for development environment
+
+[tools]
+ruby = "3.4.5"
+node = "24.6.0"
+postgres = "15"
+
+[env]
+# Rails environment
+RAILS_ENV = "development"
+NODE_ENV = "development"
+
+# Database URL
+DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/onepunch_development"
+
+# Redis URL for ActionCable, caching, and background jobs
+REDIS_URL = "redis://localhost:6379/1"
+
+# Rails server settings
+RAILS_MAX_THREADS = "5"
+WEB_CONCURRENCY = "2"
+PORT = "3000"
+
+# Hotwire Native support
+RAILS_CORS_ORIGINS = "http://localhost:3000,capacitor://localhost,http://localhost"
+
+# Web Push VAPID keys (will be generated later)
+# VAPID_PUBLIC_KEY = ""
+# VAPID_PRIVATE_KEY = ""
+# VAPID_SUBJECT = "mailto:admin@onepunch.app"

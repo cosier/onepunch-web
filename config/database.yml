@@ -1,0 +1,50 @@
+# PostgreSQL. Versions 9.3 and up are supported.
+#
+# Install the pg driver:
+#   gem install pg
+# On macOS with Homebrew:
+#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+# On Windows:
+#   gem install pg
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+#
+# Configure Using Gemfile
+# gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("DATABASE_POOL") { 5 } %>
+  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
+  username: <%= ENV.fetch("DATABASE_USER") { "postgres" } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { "postgres" } %>
+
+development:
+  <<: *default
+  database: onepunch_development
+  # Use DATABASE_URL if provided, otherwise use the default settings
+  <% if ENV["DATABASE_URL"].present? %>
+  url: <%= ENV["DATABASE_URL"] %>
+  <% end %>
+
+test:
+  <<: *default
+  database: onepunch_test
+  # Use a different database for parallel testing
+  <% if ENV["CI"] %>
+  database: onepunch_test_<%= ENV.fetch("TEST_ENV_NUMBER", "") %>
+  <% end %>
+
+# Production uses DATABASE_URL environment variable
+production:
+  <<: *default
+  <% if ENV["DATABASE_URL"].present? %>
+  url: <%= ENV["DATABASE_URL"] %>
+  <% else %>
+  database: onepunch_production
+  username: onepunch
+  password: <%= ENV["ONEPUNCH_DATABASE_PASSWORD"] %>
+  <% end %>

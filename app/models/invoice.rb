@@ -28,6 +28,7 @@ class Invoice < ApplicationRecord
 
   def generate_number
     return if number.present?
+    return unless organization
 
     last_number = organization.invoices.maximum(:number)&.to_i || 0
     self.number = format("INV-%04d", last_number + 1)

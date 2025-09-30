@@ -10,27 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_09_30_091535) do
+ActiveRecord::Schema[8.1].define(version: 2025_09_30_110948) do
   create_table "asana_credentials", force: :cascade do |t|
     t.string "access_token"
+    t.string "asana_user_gid"
     t.datetime "created_at", null: false
     t.datetime "expires_at"
     t.string "refresh_token"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
-    t.string "workspace_gid"
-    t.string "workspace_name"
+    t.index ["asana_user_gid"], name: "index_asana_credentials_on_asana_user_gid", unique: true
     t.index ["user_id"], name: "index_asana_credentials_on_user_id"
   end
 
   create_table "asana_projects", force: :cascade do |t|
     t.string "asana_gid"
-    t.string "asana_workspace_gid"
+    t.integer "asana_workspace_id"
     t.datetime "created_at", null: false
     t.datetime "last_synced_at"
     t.string "name"
     t.integer "project_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["asana_workspace_id", "asana_gid"], name: "index_asana_projects_on_asana_workspace_id_and_asana_gid"
+    t.index ["asana_workspace_id"], name: "index_asana_projects_on_asana_workspace_id"
     t.index ["project_id"], name: "index_asana_projects_on_project_id"
   end
 
@@ -38,13 +40,32 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_091535) do
     t.string "asana_gid"
     t.string "asana_project_gid"
     t.string "assignee_gid"
+    t.string "cached_project_name"
+    t.string "cached_workspace_name"
     t.boolean "completed"
     t.datetime "created_at", null: false
     t.date "due_date"
     t.string "name"
-    t.integer "time_entry_id", null: false
+    t.integer "time_entry_id"
     t.datetime "updated_at", null: false
+    t.index ["asana_gid"], name: "index_asana_tasks_on_asana_gid", unique: true
+    t.index ["asana_project_gid", "completed"], name: "index_asana_tasks_on_asana_project_gid_and_completed"
+    t.index ["asana_project_gid"], name: "index_asana_tasks_on_asana_project_gid"
+    t.index ["completed"], name: "index_asana_tasks_on_completed"
     t.index ["time_entry_id"], name: "index_asana_tasks_on_time_entry_id"
+  end
+
+  create_table "asana_workspaces", force: :cascade do |t|
+    t.string "asana_gid", null: false
+    t.datetime "created_at", null: false
+    t.boolean "is_organization", default: false
+    t.datetime "last_synced_at"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["asana_gid"], name: "index_asana_workspaces_on_asana_gid", unique: true
+    t.index ["user_id", "asana_gid"], name: "index_asana_workspaces_on_user_id_and_asana_gid", unique: true
+    t.index ["user_id"], name: "index_asana_workspaces_on_user_id"
   end
 
   create_table "clients", force: :cascade do |t|
@@ -226,8 +247,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_091535) do
   end
 
   add_foreign_key "asana_credentials", "users"
+  add_foreign_key "asana_projects", "asana_workspaces"
   add_foreign_key "asana_projects", "projects"
   add_foreign_key "asana_tasks", "time_entries"
+  add_foreign_key "asana_workspaces", "users"
   add_foreign_key "clients", "organizations"
   add_foreign_key "invitations", "organizations"
   add_foreign_key "invitations", "users", column: "invited_by_id"

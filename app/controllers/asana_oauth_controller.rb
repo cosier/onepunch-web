@@ -11,25 +11,42 @@ class AsanaOauthController < ApplicationController
     token_response = exchange_code_for_token(params[:code])
 
     if token_response[:access_token]
-      # Fetch workspace info
-      workspace = fetch_default_workspace(token_response[:access_token])
-
       # Create or update credential
-      current_user.create_asana_credential!(
+      credential = current_user.asana_credential || current_user.build_asana_credential
+
+      # Fetch Asana user info to get the user GID
+      api_service = AsanaApiService.new(credential)
+      credential.access_token = token_response[:access_token]
+      user_info = api_service.test_connection
+
+      # Check if this Asana account is already connected to another user
+      if user_info[:success] && user_info[:asana_gid]
+        existing_credential = AsanaCredential.find_by(asana_user_gid: user_info[:asana_gid])
+        if existing_credential && existing_credential.user_id != current_user.id
+          redirect_to settings_integrations_asana_path,
+            alert: "This Asana account (#{user_info[:email]}) is already connected to another OnePunch account."
+          return
+        end
+      end
+
+      credential.update!(
         access_token: token_response[:access_token],
         refresh_token: token_response[:refresh_token],
         expires_at: Time.current + token_response[:expires_in].to_i.seconds,
-        workspace_gid: workspace&.dig('gid'),
-        workspace_name: workspace&.dig('name')
+        asana_user_gid: user_info[:asana_gid]
       )
 
-      redirect_to settings_integrations_asana_path, notice: "Asana connected successfully!"
+      # Sync workspaces in background
+      AsanaSyncJob.perform_later(current_user.id)
+
+      redirect_to settings_integrations_asana_path, notice: "Asana connected successfully! Syncing your workspaces..."
     else
       redirect_to settings_integrations_asana_path, alert: "Failed to connect Asana. Please try again."
     end
   rescue => e
     Rails.logger.error "Asana OAuth error: #{e.message}"
-    redirect_to settings_integrations_asana_path, alert: "An error occurred while connecting Asana."
+    Rails.logger.error e.backtrace.join("\n")
+    redirect_to settings_integrations_asana_path, alert: "An error occurred while connecting Asana: #{e.message}"
   end
 
   private
@@ -67,17 +84,4 @@ class AsanaOauthController < ApplicationController
     {}
   end
 
-  def fetch_default_workspace(access_token)
-    response = HTTParty.get('https://app.asana.com/api/1.0/workspaces',
-      headers: {
-        'Authorization' => "Bearer #{access_token}"
-      }
-    )
-
-    workspaces = JSON.parse(response.body).dig('data')
-    workspaces&.first
-  rescue => e
-    Rails.logger.error "Workspace fetch error: #{e.message}"
-    nil
-  end
 end

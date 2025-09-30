@@ -34,6 +34,21 @@
           </div>
         </div>
 
+        <% if current_user.asana_connected? %>
+          <div>
+            <%= form.label :asana_task_gid, "Asana Task (Optional)", class: "block text-sm font-medium text-gray-700" %>
+            <select
+              name="time_entry[asana_task_gid]"
+              id="time_entry_asana_task_gid"
+              data-controller="asana-task-select"
+              data-asana-task-select-url-value="<%= asana_tasks_path(format: :json) %>"
+              class="mt-1 block w-full">
+              <option value="">Select an Asana task (optional)...</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500">Link this time entry to an Asana task</p>
+          </div>
+        <% end %>
+
         <div>
           <%= form.label :description, class: "block text-sm font-medium text-gray-700" %>
           <%= form.text_area :description,

@@ -1,13 +1,13 @@
 FactoryBot.define do
   factory :organization_setting do
-    organization { nil }
-    invoice_prefix { "MyString" }
+    association :organization
+    invoice_prefix { "INV" }
     invoice_counter { 1 }
-    default_hourly_rate { "9.99" }
-    tax_rate { "9.99" }
-    currency { "MyString" }
-    time_zone { "MyString" }
-    date_format { "MyString" }
+    default_hourly_rate { 100.0 }
+    tax_rate { 0.0 }
+    currency { "USD" }
+    time_zone { "UTC" }
+    date_format { "%Y-%m-%d" }
     notification_email { false }
     notification_slack { false }
   end

@@ -101,23 +101,35 @@ class ProjectsController < ApplicationController
   end
 
   def new
-    @project = current_organization&.projects&.build || Project.new
-    @clients = current_organization&.clients || Client.none
+    # Determine which organization to use (current or most recent)
+    org = current_organization || current_user.organizations.order(created_at: :desc).first
+
+    @project = org&.projects&.build || Project.new
+    @clients = org&.clients || Client.none
+    @organizations = current_user.organizations.order(created_at: :desc)
   end
 
   def create
-    @project = current_organization&.projects&.build(project_params) || Project.new
+    # If organization_id provided in params, use it; otherwise fallback to current or most recent
+    org_id = project_params[:organization_id].presence ||
+             current_organization&.id ||
+             current_user.organizations.order(created_at: :desc).first&.id
+
+    org = current_user.organizations.find(org_id) if org_id
+    @project = org&.projects&.build(project_params.except(:organization_id)) || Project.new(project_params.except(:organization_id))
 
     if @project.save
       redirect_to projects_path, notice: "Project was successfully created."
     else
-      @clients = current_organization&.clients || Client.none
+      @clients = org&.clients || Client.none
+      @organizations = current_user.organizations.order(created_at: :desc)
       render :new, status: :unprocessable_entity
     end
   end
 
   def edit
     @clients = current_organization&.clients || Client.none
+    @organizations = current_user.organizations.order(created_at: :desc)
   end
 
   def update
@@ -150,6 +162,6 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:name, :description, :hourly_rate, :color, :client_id, :status)
+    params.require(:project).permit(:name, :description, :hourly_rate, :color, :client_id, :status, :organization_id)
   end
 end

@@ -88,10 +88,15 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
-  
+
   # Factories and fake data
   gem "factory_bot_rails"
   gem "faker"
+
+  # Testing framework
+  gem "rspec-rails", "~> 7.1"
+  gem "vcr"
+  gem "webmock"
 end
 
 group :development do
@@ -118,3 +123,8 @@ group :development do
   gem "hotwire-livereload"
 end
 gem "httparty"
+
+gem "simplecov", "~> 0.22.0", groups: [:development, :test]
+gem "simplecov-console", "~> 0.9.4", groups: [:development, :test]
+
+gem "shoulda-matchers", "~> 6.5", group: :test

@@ -14,6 +14,7 @@ class User < ApplicationRecord
   belongs_to :current_organization, class_name: 'Organization', optional: true
   has_many :sent_invitations, class_name: 'Invitation', foreign_key: 'invited_by_id'
   has_one :asana_credential, dependent: :destroy
+  has_many :asana_workspaces, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -85,7 +86,7 @@ class User < ApplicationRecord
 
   # Integration methods
   def asana_connected?
-    asana_credential.present?
+    asana_credential.present? && !asana_credential.expired?
   end
 
   # OAuth methods

@@ -1,46 +1,36 @@
 class AsanaProject < ApplicationRecord
   belongs_to :project
+  belongs_to :asana_workspace
 
   validates :asana_gid, presence: true, uniqueness: true
   validates :name, presence: true
 
-  # Sync projects from Asana to local projects
-  def self.sync_from_asana(user)
-    return unless user.asana_connected?
+  scope :by_workspace, ->(workspace) { where(asana_workspace: workspace) }
+  scope :recently_synced, -> { where("last_synced_at > ?", 1.hour.ago) }
 
-    credential = user.asana_credential
-    response = HTTParty.get("https://app.asana.com/api/1.0/projects",
-      headers: {
-        'Authorization' => "Bearer #{credential.access_token}"
-      },
-      query: {
-        workspace: credential.workspace_gid,
-        archived: false
-      }
-    )
+  # Sync projects from Asana for a specific workspace
+  def self.sync_from_asana(user, workspace, asana_api_service)
+    return [] unless user.asana_connected?
 
-    projects_data = JSON.parse(response.body).dig('data')
-    return [] unless projects_data
+    projects_data = asana_api_service.fetch_projects(workspace.asana_gid)
 
-    projects_data.map do |asana_project|
+    projects_data.map do |asana_project_data|
       # Find or create OnePunch project
       project = user.current_organization.projects.find_or_initialize_by(
-        name: asana_project['name']
+        name: asana_project_data['name']
       )
 
-      if project.new_record?
-        project.save!
-      end
+      project.save! if project.new_record?
 
       # Create or update AsanaProject link
       asana_proj = find_or_initialize_by(
-        asana_gid: asana_project['gid'],
-        project: project
+        asana_gid: asana_project_data['gid'],
+        asana_workspace: workspace
       )
 
       asana_proj.update!(
-        name: asana_project['name'],
-        asana_workspace_gid: credential.workspace_gid,
+        project: project,
+        name: asana_project_data['name'],
         last_synced_at: Time.current
       )
 
@@ -49,5 +39,10 @@ class AsanaProject < ApplicationRecord
   rescue => e
     Rails.logger.error "Asana project sync error: #{e.message}"
     []
+  end
+
+  # Sync tasks for this project
+  def sync_tasks(asana_api_service)
+    AsanaTask.sync_from_asana(asana_workspace.user, asana_workspace, self, asana_api_service)
   end
 end

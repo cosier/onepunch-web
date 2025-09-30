@@ -59,6 +59,9 @@ class TimeEntriesController < ApplicationController
     @time_entry.ended_at = Time.current if @time_entry.started_at.present?
 
     if @time_entry.save
+      # Associate with Asana task if provided
+      associate_asana_task(@time_entry, params[:time_entry][:asana_task_gid]) if params[:time_entry][:asana_task_gid].present?
+
       redirect_to time_entries_path, notice: "Time entry was successfully created."
     else
       @projects = current_organization&.projects&.active || []
@@ -72,6 +75,14 @@ class TimeEntriesController < ApplicationController
 
   def update
     if @time_entry.update(time_entry_params)
+      # Update Asana task association if provided
+      if params[:time_entry][:asana_task_gid].present?
+        associate_asana_task(@time_entry, params[:time_entry][:asana_task_gid])
+      elsif params[:time_entry][:asana_task_gid] == ""
+        # Clear association if empty string provided
+        @time_entry.asana_task&.update(time_entry_id: nil)
+      end
+
       redirect_to time_entries_path, notice: "Time entry was successfully updated."
     else
       @projects = current_organization&.projects&.active || []
@@ -143,5 +154,19 @@ class TimeEntriesController < ApplicationController
 
   def time_entry_params
     params.require(:time_entry).permit(:project_id, :description, :started_at, :ended_at, :billable)
+  end
+
+  def associate_asana_task(time_entry, asana_task_gid)
+    return unless asana_task_gid.present? && current_user.asana_connected?
+
+    # Find the Asana task by gid
+    asana_task = AsanaTask.find_by(asana_gid: asana_task_gid)
+
+    if asana_task
+      # Clear any previous association this task had
+      asana_task.update(time_entry: time_entry)
+    else
+      Rails.logger.warn "Asana task #{asana_task_gid} not found"
+    end
   end
 end

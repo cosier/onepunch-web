@@ -1,0 +1,212 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://app.asana.com/api/1.0/tasks?limit=100&opt_fields=name,completed,due_on,assignee.gid&project=9876543210
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Authorization:
+      - Bearer <ASANA_ACCESS_TOKEN>
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Content-Length:
+      - '181'
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 30 Sep 2025 10:33:07 GMT
+      X-Frame-Options:
+      - DENY
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      Content-Security-Policy:
+      - report-uri https://app.asana.com/-/csp_report?report_only=false;default-src
+        'none';frame-src 'none';frame-ancestors 'none'
+      X-Asana-Api-Version:
+      - '1.1'
+      Asana-Change:
+      - name=cross_workspace_deprecation;info=https://forum.asana.com/t/change-get-projects-get-users-and-get-tags-will-require-a-workspace-or-team/1031581
+      - name=goal_sals_api;info=https://go.asana.com/doesnt-exist-yet
+      - name=new_goal_memberships;info=https://forum.asana.com/t/launched-team-sharing-for-goals/378601;affected=true
+      - name=new_user_task_lists;info=https://forum.asana.com/t/update-on-our-planned-api-changes-to-user-task-lists-a-k-a-my-tasks/103828
+      X-Envoy-Upstream-Service-Time:
+      - '4'
+      Server:
+      - istio-envoy
+      X-Cache:
+      - Error from cloudfront
+      Via:
+      - 1.1 28b2edf031330899448918ef133d0fc0.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - BKK50-P1
+      X-Amz-Cf-Id:
+      - vr_GJhXaA6rnb7Sz4kS7f8I_jOe_E7oI9akb2-5lmW1gjZNpsjQeuw==
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      X-Robots-Tag:
+      - none
+      X-Ua-Compatible:
+      - IE=edge,chrome=1
+    body:
+      encoding: UTF-8
+      string: '{"errors":[{"message":"Not Authorized","help":"For more information
+        on API status codes and how to handle them, read the docs on errors: https://developers.asana.com/docs/errors"}]}'
+  recorded_at: Tue, 30 Sep 2025 10:32:57 GMT
+- request:
+    method: post
+    uri: https://app.asana.com/-/oauth_token
+    body:
+      encoding: UTF-8
+      string: grant_type=refresh_token&client_id=<ASANA_CLIENT_ID>&client_secret=<ASANA_CLIENT_SECRET>&refresh_token=test_refresh_token
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 400
+      message: Bad Request
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Content-Length:
+      - '207'
+      Connection:
+      - keep-alive
+      Date:
+      - Tue, 30 Sep 2025 10:33:07 GMT
+      Cache-Control:
+      - no-store
+      Content-Security-Policy:
+      - 'report-uri /-/csp_report?report_only=false; ; frame-ancestors ''self'' https://teams.integrations.asana.plus
+        https://teams-beta.integrations.asana.plus https://teams-uat.integrations.asana.plus
+        https://teams.microsoft.com https://teams.cloud.microsoft; frame-src ''self''
+        blob: https://www.figma.com https://*.invisionapp.com https://invis.io https://miro.com
+        https://whimsical.com https://www.loom.com https://www.youtube.com https://player.vimeo.com
+        https://fast.wistia.com https://www.canva.com https://xd.adobe.com https://*.looker.com
+        https://lucid.app https://*.okta.com https://*.sharepoint.com https://*.dovetail.com
+        https://*.tableau.com https://airtable.com https://*.mural.co https://help.asana.com
+        https://accounts.google.com https://accounts.google.com/gsi/ https://content.googleapis.com
+        https://www.google.com https://docs.google.com https://fast.wistia.net https://www.dropbox.com
+        https://platform.harvestapp.com https://forms.asana.plus https://forms-server.asana.plus
+        https://local.asana.com https://asana.com https://apisandbox.zuora.com https://test.zuora.com
+        https://www.zuora.com https://www.sandbox.paypal.com https://www.paypal.com
+        https://recordwidget.vimeocdn.com https://api.stripe.com https://hooks.stripe.com
+        https://js.stripe.com https://m.stripe.com https://m.stripe.network https://q.stripe.com
+        https://pixel.asana.com https://d3ki9tyy5l5ruj.cloudfront.net https://prod-eu1.app.asana.com
+        https://prod-au1.app.asana.com https://prod-jp1.app.asana.com https://cdn.cookielaw.org
+        https://form.asana.com https://form.asana-gov.com https://form-beta.asana.com
+        https://form-stag.luna-s.org https://localhost.asana.com:3000 https://861-iiv-735.mktoweb.com
+        https://resources.asana.com https://ccwizard.vertexsmb.com https://*.qualtrics.com;
+        worker-src ''self'' blob: https://d3ki9tyy5l5ruj.cloudfront.net; child-src
+        ''self'' blob: https://d3ki9tyy5l5ruj.cloudfront.net; object-src ''self'';
+        plugin-types application/pdf; base-uri ''none''; script-src https: ''strict-dynamic''
+        ''report-sample'' ''wasm-unsafe-eval'' ''nonce-arinkg2a20le6f94ef0dn3bn2''
+        ''self'' ''unsafe-inline'' https://ssl.gstatic.com https://apis.google.com
+        https://accounts.google.com/gsi/client https://d3ki9tyy5l5ruj.cloudfront.net
+        https://d1gwm4cf8hecp4.cloudfront.net https://d1a3usp4brejtz.cloudfront.net
+        https://d3u0af8znnrzzj.cloudfront.net https://d1dg3ns82tdjz3.cloudfront.net
+        https://d2y3xhxlqzgfzh.cloudfront.net https://oauth.googleusercontent.com
+        https://app.box.com https://platform.twitter.com https://connect.facebook.net
+        https://platform.harvestapp.com https://www.google.com https://docs.google.com
+        https://www.gstatic.com https://www.dropbox.com https://www.paypal.com/sdk/js
+        https://recordwidget.vimeocdn.com https://api.stripe.com https://hooks.stripe.com
+        https://js.stripe.com https://m.stripe.com https://m.stripe.network https://q.stripe.com
+        https://prod-eu1.app.asana.com https://prod-au1.app.asana.com https://prod-jp1.app.asana.com
+        https://cdn.cookielaw.org https://861-iiv-735.mktoweb.com https://resources.asana.com
+        https://ccwizard.vertexsmb.com;'
+      Content-Security-Policy-Report-Only:
+      - 'report-uri /-/csp_report?report_only=true;;frame-ancestors ''self'' https://teams.microsoft.com
+        https://teams-beta.integrations.asana.plus https://teams-uat.integrations.asana.plus
+        https://teams.integrations.asana.plus https://teams.cloud.microsoft;frame-src
+        ''self'' blob: https://www.figma.com https://*.invisionapp.com https://invis.io
+        https://miro.com https://whimsical.com https://www.loom.com https://www.youtube.com
+        https://player.vimeo.com https://fast.wistia.com https://www.canva.com https://xd.adobe.com
+        https://*.looker.com https://lucid.app https://*.okta.com https://*.sharepoint.com
+        https://*.dovetail.com https://*.tableau.com https://airtable.com https://*.mural.co
+        https://help.asana.com https://accounts.google.com https://accounts.google.com/gsi/
+        https://content.googleapis.com https://www.google.com https://docs.google.com
+        https://fast.wistia.net https://www.dropbox.com https://platform.harvestapp.com
+        https://forms.asana.plus https://forms-server.asana.plus https://local.asana.com
+        https://asana.com https://apisandbox.zuora.com https://test.zuora.com https://www.zuora.com
+        https://www.sandbox.paypal.com https://www.paypal.com https://js.stripe.com
+        https://recordwidget.vimeocdn.com https://pixel.asana.com https://d3ki9tyy5l5ruj.cloudfront.net
+        https://prod-eu1.app.asana.com https://prod-au1.app.asana.com https://prod-jp1.app.asana.com
+        https://cdn.cookielaw.org https://form.asana.com https://form-beta.asana.com
+        https://form-stag.luna-s.org https://localhost.asana.com:3000 https://861-iiv-735.mktoweb.com
+        https://resources.asana.com https://ccwizard.vertexsmb.com https://*.qualtrics.com;worker-src
+        ''self'' blob: https://d3ki9tyy5l5ruj.cloudfront.net;child-src ''self'' blob:
+        https://d3ki9tyy5l5ruj.cloudfront.net;object-src ''self'';plugin-types application/pdf;base-uri
+        ''none''; script-src https: ''strict-dynamic'' ''report-sample'' ''wasm-unsafe-eval''
+        ''nonce-arinkg2a20le6f94ef0dn3bn2'' ''self'' ''unsafe-inline'' ''report-sample''
+        https://ssl.gstatic.com https://apis.google.com https://accounts.google.com/gsi/client
+        https://d3ki9tyy5l5ruj.cloudfront.net https://d1gwm4cf8hecp4.cloudfront.net
+        https://d1a3usp4brejtz.cloudfront.net https://d3u0af8znnrzzj.cloudfront.net
+        https://d1dg3ns82tdjz3.cloudfront.net https://d2y3xhxlqzgfzh.cloudfront.net
+        https://oauth.googleusercontent.com https://app.box.com https://platform.twitter.com
+        https://connect.facebook.net https://platform.harvestapp.com https://www.google.com
+        https://docs.google.com https://www.gstatic.com https://www.dropbox.com https://www.paypal.com/sdk/js
+        https://js.stripe.com https://recordwidget.vimeocdn.com https://prod-eu1.app.asana.com
+        https://prod-au1.app.asana.com https://prod-jp1.app.asana.com https://cdn.cookielaw.org
+        https://861-iiv-735.mktoweb.com https://resources.asana.com https://ccwizard.vertexsmb.com'
+      Pragma:
+      - no-cache
+      Set-Cookie:
+      - logged_out_uuid=3824dd2b0cfb4717a86b281422166d68; expires=Mon, 29 Dec 2025
+        10:33:07 GMT; path=/; domain=asana.com; SameSite=None; secure
+      X-Asana-Content-String-Length:
+      - '207'
+      X-Asana-Wsm-Rid:
+      - 33Pp6gDbBIBp7mrJdQv82odw7Yf
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Ua-Compatible:
+      - IE=edge,chrome=1
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Envoy-Upstream-Service-Time:
+      - '18'
+      Server:
+      - istio-envoy
+      X-Robots-Tag:
+      - none
+      X-Cache:
+      - Error from cloudfront
+      Via:
+      - 1.1 f50827672a2750399f52581e42f9b5dc.cloudfront.net (CloudFront)
+      X-Amz-Cf-Pop:
+      - BKK50-P1
+      X-Amz-Cf-Id:
+      - ChL6yA2WY9lTGFn416rQFfJKYdiMsnflkBA-8iCJPzteIFsTMICSLw==
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: '{"error":"invalid_grant","error_uri":"https:\u002F\u002Fasana.com\u002Fdevelopers\u002Fdocumentation\u002Fgetting-started\u002Fauthentication","error_description":"The
+        `refresh_token` provided was invalid."}'
+  recorded_at: Tue, 30 Sep 2025 10:32:58 GMT
+recorded_with: VCR 6.3.1

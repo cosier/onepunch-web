@@ -37,7 +37,14 @@ Rails.application.routes.draw do
     get :account
     namespace :integrations do
       get :asana
+      post :sync_asana
       delete :disconnect_asana
+
+      # Development-only debug endpoints
+      if Rails.env.development?
+        get :test_connection
+        get :list_workspaces
+      end
     end
   end
 
@@ -81,6 +88,9 @@ Rails.application.routes.draw do
 
   # For future expansion
   resources :clients, except: [:show]
+
+  # Asana tasks API (JSON only)
+  resources :asana_tasks, only: [:index]
 
   # Admin area
   namespace :admin do

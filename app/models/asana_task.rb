@@ -1,46 +1,60 @@
 class AsanaTask < ApplicationRecord
-  belongs_to :time_entry
+  belongs_to :time_entry, optional: true
 
   validates :asana_gid, presence: true, uniqueness: true
   validates :name, presence: true
 
+  scope :unassigned, -> { where(time_entry_id: nil) }
+  scope :assigned, -> { where.not(time_entry_id: nil) }
+  scope :by_workspace, ->(workspace_name) { where(cached_workspace_name: workspace_name) }
+  scope :by_project_gid, ->(gid) { where(asana_project_gid: gid) }
+  scope :incomplete, -> { where(completed: [false, nil]) }
+  scope :search, ->(query) { where("name LIKE ?", "%#{sanitize_sql_like(query)}%") if query.present? }
+
   # Sync tasks from Asana for a specific project
-  def self.sync_from_asana(user, asana_project)
-    return unless user.asana_connected?
+  def self.sync_from_asana(user, workspace, asana_project, asana_api_service)
+    return [] unless user.asana_connected?
 
-    credential = user.asana_credential
-    response = HTTParty.get("https://app.asana.com/api/1.0/tasks",
-      headers: {
-        'Authorization' => "Bearer #{credential.access_token}"
-      },
-      query: {
-        project: asana_project.asana_gid,
-        opt_fields: 'name,completed,due_on,assignee.gid'
-      }
-    )
+    tasks_data = asana_api_service.fetch_tasks(asana_project.asana_gid)
 
-    tasks_data = JSON.parse(response.body).dig('data')
-    return [] unless tasks_data
-
-    tasks_data.map do |asana_task|
-      # Find existing AsanaTask record
-      task = find_or_initialize_by(asana_gid: asana_task['gid'])
+    tasks_data.map do |asana_task_data|
+      # Find existing or create new AsanaTask record
+      task = find_or_initialize_by(asana_gid: asana_task_data['gid'])
 
       task.assign_attributes(
-        name: asana_task['name'],
+        name: asana_task_data['name'],
         asana_project_gid: asana_project.asana_gid,
-        completed: asana_task['completed'],
-        due_date: asana_task['due_on'],
-        assignee_gid: asana_task.dig('assignee', 'gid')
+        completed: asana_task_data['completed'],
+        due_date: asana_task_data['due_on'],
+        assignee_gid: asana_task_data.dig('assignee', 'gid'),
+        cached_project_name: asana_project.name,
+        cached_workspace_name: workspace.name
       )
 
-      # Only save if we have a time_entry association
-      task.save! if task.time_entry_id.present?
-
+      task.save!
       task
     end
   rescue => e
     Rails.logger.error "Asana task sync error: #{e.message}"
     []
+  end
+
+  # Get tasks grouped by workspace and project for dropdowns
+  def self.grouped_for_select(user)
+    return [] unless user.asana_connected?
+
+    tasks = unassigned.incomplete.order(:cached_workspace_name, :cached_project_name, :name)
+
+    tasks.group_by(&:cached_workspace_name).transform_values do |workspace_tasks|
+      workspace_tasks.group_by(&:cached_project_name).transform_values do |project_tasks|
+        project_tasks.map { |t| [t.display_name, t.asana_gid] }
+      end
+    end
+  end
+
+  def display_name
+    parts = [name]
+    parts << "(due: #{due_date.strftime('%m/%d')})" if due_date.present?
+    parts.join(" ")
   end
 end

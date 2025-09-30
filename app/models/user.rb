@@ -2,6 +2,9 @@
 class User < ApplicationRecord
   has_secure_password validations: false
 
+  # Concerns
+  include OnboardingRequirement
+
   # Associations
   has_many :memberships, dependent: :destroy
   has_many :organizations, through: :memberships

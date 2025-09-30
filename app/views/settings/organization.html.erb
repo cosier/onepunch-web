@@ -109,12 +109,12 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700">Currency</label>
-              <p class="mt-1 text-sm text-gray-900"><%= @organization.currency || 'USD' %></p>
+              <p class="mt-1 text-sm text-gray-900"><%= current_user.currency || 'USD' %></p>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700">Time Zone</label>
-              <p class="mt-1 text-sm text-gray-900"><%= @organization.timezone || 'UTC' %></p>
+              <p class="mt-1 text-sm text-gray-900"><%= current_user.timezone || 'UTC' %></p>
             </div>
 
             <div>

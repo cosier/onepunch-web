@@ -24,9 +24,9 @@ module OnboardingRequirement
   # Get list of incomplete requirements for display
   def incomplete_requirements
     requirements = []
-    requirements << { name: "Create organization", completed: organization_created?, path: new_onboarding_path } unless organization_created?
+    requirements << { name: "Create organization", completed: organization_created?, path: "/onboarding/new" } unless organization_created?
     requirements << { name: "Connect Asana", completed: asana_connected?, path: "#" } unless asana_connected?
-    requirements << { name: "Create first project", completed: first_project_created?, path: new_project_path } unless first_project_created?
+    requirements << { name: "Create first project", completed: first_project_created?, path: "/projects/new" } unless first_project_created?
     requirements
   end
 

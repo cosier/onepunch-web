@@ -31,6 +31,10 @@ Rails.application.routes.draw do
     get :organization
     get :billing
     get :account
+    namespace :integrations do
+      get :asana
+      delete :disconnect_asana
+    end
   end
 
   # Organization routes

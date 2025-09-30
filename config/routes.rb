@@ -73,4 +73,11 @@ Rails.application.routes.draw do
 
   # For future expansion
   resources :clients, except: [:show]
+
+  # Admin area
+  namespace :admin do
+    root to: "dashboard#index"
+    resources :users
+    resources :organizations
+  end
 end

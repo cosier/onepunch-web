@@ -20,6 +20,10 @@ Rails.application.routes.draw do
   post "/signup", to: "registrations#create"
 
   # OAuth routes
+  # Asana OAuth (must be before generic :provider route)
+  get "/auth/asana", to: "asana_oauth#authorize", as: :asana_oauth_authorize
+  get "/auth/asana/callback", to: "asana_oauth#callback", as: :asana_oauth_callback
+  # Generic OmniAuth callback (Google, etc)
   get "/auth/:provider/callback", to: "sessions#omniauth"
 
   # Dashboard

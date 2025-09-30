@@ -1,6 +1,7 @@
 class TimeEntry < ApplicationRecord
   belongs_to :user
   belongs_to :project
+  has_one :asana_task, dependent: :destroy
 
   validates :started_at, presence: true
 

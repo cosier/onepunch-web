@@ -143,7 +143,10 @@ class ProjectsController < ApplicationController
   private
 
   def set_project
-    @project = current_organization&.projects&.find(params[:id]) || Project.find(params[:id])
+    # Allow access to projects across all user's organizations
+    @project = Project.joins(:organization).where(organizations: { id: current_user.organization_ids }).find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to projects_path, alert: "Project not found or you don't have access to it."
   end
 
   def project_params

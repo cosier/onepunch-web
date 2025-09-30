@@ -10,7 +10,43 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_09_30_030939) do
+ActiveRecord::Schema[8.1].define(version: 2025_09_30_091535) do
+  create_table "asana_credentials", force: :cascade do |t|
+    t.string "access_token"
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.string "refresh_token"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.string "workspace_gid"
+    t.string "workspace_name"
+    t.index ["user_id"], name: "index_asana_credentials_on_user_id"
+  end
+
+  create_table "asana_projects", force: :cascade do |t|
+    t.string "asana_gid"
+    t.string "asana_workspace_gid"
+    t.datetime "created_at", null: false
+    t.datetime "last_synced_at"
+    t.string "name"
+    t.integer "project_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id"], name: "index_asana_projects_on_project_id"
+  end
+
+  create_table "asana_tasks", force: :cascade do |t|
+    t.string "asana_gid"
+    t.string "asana_project_gid"
+    t.string "assignee_gid"
+    t.boolean "completed"
+    t.datetime "created_at", null: false
+    t.date "due_date"
+    t.string "name"
+    t.integer "time_entry_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["time_entry_id"], name: "index_asana_tasks_on_time_entry_id"
+  end
+
   create_table "clients", force: :cascade do |t|
     t.text "address"
     t.string "company"
@@ -189,6 +225,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_030939) do
     t.index ["id", "current_organization_id"], name: "index_users_on_id_and_current_organization_id"
   end
 
+  add_foreign_key "asana_credentials", "users"
+  add_foreign_key "asana_projects", "projects"
+  add_foreign_key "asana_tasks", "time_entries"
   add_foreign_key "clients", "organizations"
   add_foreign_key "invitations", "organizations"
   add_foreign_key "invitations", "users", column: "invited_by_id"

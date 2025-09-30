@@ -5,6 +5,7 @@ class Project < ApplicationRecord
   belongs_to :client, optional: true
   has_many :time_entries, dependent: :destroy
   has_many :invoices, dependent: :nullify
+  has_one :asana_project, dependent: :destroy
   
   # Validations
   validates :name, presence: true

@@ -13,6 +13,7 @@ class User < ApplicationRecord
            through: :memberships, source: :organization
   belongs_to :current_organization, class_name: 'Organization', optional: true
   has_many :sent_invitations, class_name: 'Invitation', foreign_key: 'invited_by_id'
+  has_one :asana_credential, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -80,6 +81,11 @@ class User < ApplicationRecord
 
   def has_only_personal_organization?
     organizations.count == 1 && organizations.personal.exists?
+  end
+
+  # Integration methods
+  def asana_connected?
+    asana_credential.present?
   end
 
   # OAuth methods

@@ -53,21 +53,25 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
+  # Configure mailer to use SMTP
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  # Set default URL options for production
+  config.action_mailer.default_url_options = { host: "onepunch.work", protocol: "https" }
+  Rails.application.routes.default_url_options = { host: "onepunch.work", protocol: "https" }
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  # AWS SES SMTP configuration (supports both ENV vars and Rails credentials)
+  config.action_mailer.smtp_settings = {
+    address: ENV["SMTP_ADDRESS"] || Rails.application.credentials.dig(:smtp, :address),
+    port: ENV["SMTP_PORT"] || Rails.application.credentials.dig(:smtp, :port),
+    user_name: ENV["SMTP_USERNAME"] || Rails.application.credentials.dig(:smtp, :user_name),
+    password: ENV["SMTP_PASSWORD"] || Rails.application.credentials.dig(:smtp, :password),
+    domain: ENV["SMTP_DOMAIN"] || Rails.application.credentials.dig(:smtp, :domain),
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

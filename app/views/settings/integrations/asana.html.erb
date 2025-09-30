@@ -25,10 +25,11 @@
               <p class="mt-1 text-sm text-gray-500">
                 Your Asana account is successfully connected.
               </p>
-              <%# TODO: Show connected workspace info when available %>
-              <%# <p class="mt-2 text-sm text-gray-700">
-                <span class="font-medium">Workspace:</span> <%= @asana_credential.workspace_name %>
-              <%# </p> %>
+              <% if @asana_credential&.workspace_name %>
+                <p class="mt-2 text-sm text-gray-700">
+                  <span class="font-medium">Workspace:</span> <%= @asana_credential.workspace_name %>
+                </p>
+              <% end %>
             </div>
           </div>
           <div>
@@ -50,7 +51,7 @@
             Connect your Asana account to sync tasks and track time across your projects seamlessly.
           </p>
           <div class="mt-6">
-            <%= link_to "#",
+            <%= link_to asana_oauth_authorize_path,
                 class: "inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
               <svg class="-ml-1 mr-3 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="2"/>

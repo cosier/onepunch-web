@@ -27,9 +27,10 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
-# Ignore master key for Rails credentials
+# Ignore master key for Rails credentials (but DO commit .yml.enc files!)
 /config/master.key
 /config/credentials/*.key
+# Note: config/credentials.yml.enc and config/credentials/*.yml.enc SHOULD be committed
 
 # Ignore public uploads
 /public/uploads

@@ -117,3 +117,4 @@ group :development do
   # Live reload
   gem "hotwire-livereload"
 end
+gem "httparty"

@@ -31,14 +31,25 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  # Configure mailer to use SMTP (supports both ENV vars and Rails credentials)
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: ENV["SMTP_ADDRESS"] || Rails.application.credentials.dig(:smtp, :address),
+    port: ENV["SMTP_PORT"] || Rails.application.credentials.dig(:smtp, :port),
+    user_name: ENV["SMTP_USERNAME"] || Rails.application.credentials.dig(:smtp, :user_name),
+    password: ENV["SMTP_PASSWORD"] || Rails.application.credentials.dig(:smtp, :password),
+    domain: ENV["SMTP_DOMAIN"] || Rails.application.credentials.dig(:smtp, :domain),
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
 
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
-  # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  # Set default URL options for development
+  config.action_mailer.default_url_options = { host: "dev.onepunch.work", protocol: "https" }
+  Rails.application.routes.default_url_options = { host: "dev.onepunch.work", protocol: "https" }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

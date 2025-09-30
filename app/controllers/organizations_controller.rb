@@ -1,7 +1,7 @@
 class OrganizationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_organization, only: [:show, :edit, :update, :destroy]
-  before_action :authorize_admin!, only: [:edit, :update, :destroy]
+  before_action :set_organization, only: [:show, :update, :destroy]
+  before_action :authorize_admin!, only: [:update, :destroy]
 
   def index
     @organizations = current_user.organizations
@@ -28,19 +28,28 @@ class OrganizationsController < ApplicationController
     end
   end
 
-  def edit
-  end
-
   def update
     if @organization.update(organization_params)
-      redirect_to settings_organization_path, notice: 'Organization updated successfully!'
+      respond_to do |format|
+        format.html { redirect_to organization_path(@organization), notice: 'Organization updated successfully!' }
+        format.turbo_stream {
+          flash.now[:notice] = 'Saved!'
+          render turbo_stream: turbo_stream.update("flash", partial: "shared/flash_notice")
+        }
+      end
     else
-      render :edit, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { redirect_to organization_path(@organization), alert: 'Failed to update organization' }
+        format.turbo_stream {
+          flash.now[:alert] = @organization.errors.full_messages.join(', ')
+          render turbo_stream: turbo_stream.update("flash", partial: "shared/flash_alert")
+        }
+      end
     end
   end
 
   def destroy
-    if @organization.is_personal?
+    if @organization.personal?
       redirect_to organizations_path, alert: 'Cannot delete personal organization'
       return
     end
@@ -62,6 +71,6 @@ class OrganizationsController < ApplicationController
   end
 
   def organization_params
-    params.require(:organization).permit(:name, :size, :currency, :timezone)
+    params.require(:organization).permit(:name)
   end
 end

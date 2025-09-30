@@ -116,7 +116,7 @@ class User < ApplicationRecord
   end
 
   def only_one_personal_organization
-    personal_org_count = organizations.where(is_personal: true).count
+    personal_org_count = organizations.where(personal: true).count
     if personal_org_count > 1
       errors.add(:base, "User can only have one personal organization")
     end

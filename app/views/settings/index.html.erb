@@ -44,11 +44,9 @@
   <!-- Settings Navigation Tabs -->
   <div class="mb-6">
     <nav class="flex space-x-8">
-      <%= link_to "General", settings_path,
+      <%= link_to "Account", settings_account_path,
           class: "pb-3 px-1 border-b-2 font-medium text-sm #{'border-indigo-500 text-indigo-600' if current_page?(settings_path)}" %>
       <%= link_to "Organization", settings_organization_path,
-          class: "pb-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" %>
-      <%= link_to "Profile", settings_profile_path,
           class: "pb-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" %>
       <%= link_to "Billing", settings_billing_path,
           class: "pb-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" %>
@@ -121,7 +119,7 @@
     </div>
   </div>
 
-  <% if !@organization.is_personal? %>
+  <% if !@organization.personal? %>
     <!-- Create Organization Link for Business Orgs -->
     <div class="mt-8 text-center">
       <%= link_to "Create New Organization", new_organization_path,

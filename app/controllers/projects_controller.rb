@@ -54,6 +54,50 @@ class ProjectsController < ApplicationController
     # Today's stats
     @today_entries = @project.time_entries.where(started_at: current_date.beginning_of_day..current_date.end_of_day)
     @today_hours = (@today_entries.sum(:duration) || 0) / 3600.0
+
+    # Calendar data for monthly view
+    @calendar_month = params[:month] ? Date.parse(params[:month]) : current_date
+    @calendar_start = @calendar_month.beginning_of_month.beginning_of_week
+    @calendar_end = @calendar_month.end_of_month.end_of_week
+
+    # Get all days with time entries in the calendar range
+    @days_with_entries = @project.time_entries
+      .where(started_at: @calendar_start..@calendar_end)
+      .group("DATE(started_at)")
+      .sum(:duration)
+      .transform_keys { |k| Date.parse(k.to_s) }
+      .transform_values { |v| (v || 0) / 3600.0 }
+
+    # Daily breakdown for the current week with summaries
+    @daily_breakdown = (0..6).map do |days_ago|
+      day = current_date.beginning_of_week + days_ago.days
+      entries = @project.time_entries.where(started_at: day.beginning_of_day..day.end_of_day)
+
+      # Generate or fetch summary for the day
+      summary_text = ""
+      if entries.any?
+        slug = Summary.generate_slug(day, @project.id, entries.count)
+        descriptions = entries.pluck(:description).reject(&:blank?)
+
+        if descriptions.any?
+          summary = Summary.find_or_create_for(slug, descriptions)
+          summary_text = summary.ready? ? summary.summarized_text : "Generating summary..."
+        else
+          summary_text = "#{entries.count} time #{entries.count == 1 ? 'entry' : 'entries'} recorded"
+        end
+      end
+
+      {
+        date: day,
+        day_name: day.strftime('%A'),
+        day_short: day.strftime('%a'),
+        hours: (entries.sum(:duration) || 0) / 3600.0,
+        billable_hours: (entries.billable.sum(:duration) || 0) / 3600.0,
+        entries: entries.count,
+        summary: summary_text,
+        has_entries: entries.any?
+      }
+    end
   end
 
   def new

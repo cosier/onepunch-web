@@ -29,12 +29,12 @@ Rails.application.routes.draw do
   get "/settings", to: "settings#index"
   namespace :settings do
     get :organization
-    get :profile
     get :billing
+    get :account
   end
 
   # Organization routes
-  resources :organizations do
+  resources :organizations, except: [:edit] do
     resources :members, controller: 'organization_members'
     resources :invitations, controller: 'organization_invitations'
   end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_09_29_131110) do
+ActiveRecord::Schema[8.1].define(version: 2025_09_30_030939) do
   create_table "clients", force: :cascade do |t|
     t.text "address"
     t.string "company"
@@ -107,22 +107,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_131110) do
     t.text "address"
     t.string "billing_email"
     t.datetime "created_at", null: false
-    t.string "currency", default: "USD"
     t.string "industry"
-    t.boolean "is_personal", default: false, null: false
     t.string "logo_url"
     t.string "name", null: false
     t.datetime "onboarded_at"
+    t.boolean "personal", default: false, null: false
     t.text "settings"
-    t.string "size"
     t.string "slug", null: false
     t.string "subscription_status", default: "trial"
     t.string "tax_id"
-    t.string "timezone", default: "UTC"
     t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
     t.string "website"
-    t.index ["is_personal"], name: "index_organizations_on_is_personal"
+    t.index ["personal"], name: "index_organizations_on_personal"
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
@@ -140,6 +137,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_131110) do
     t.index ["archived"], name: "index_projects_on_archived"
     t.index ["client_id"], name: "index_projects_on_client_id"
     t.index ["organization_id"], name: "index_projects_on_organization_id"
+  end
+
+  create_table "summaries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.json "metadata", default: {}
+    t.string "status", default: "pending"
+    t.text "summarized_text"
+    t.text "text_to_summarize"
+    t.string "unique_slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_summaries_on_created_at"
+    t.index ["status"], name: "index_summaries_on_status"
+    t.index ["unique_slug"], name: "index_summaries_on_unique_slug", unique: true
   end
 
   create_table "time_entries", force: :cascade do |t|
@@ -171,6 +181,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_29_131110) do
     t.datetime "last_sign_in_at"
     t.string "password_digest"
     t.integer "role", default: 0
+    t.string "timezone", default: "UTC"
     t.datetime "updated_at", null: false
     t.index ["current_organization_id"], name: "index_users_on_current_organization_id"
     t.index ["email"], name: "index_users_on_email", unique: true

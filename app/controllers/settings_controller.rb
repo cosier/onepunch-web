@@ -3,8 +3,11 @@ class SettingsController < ApplicationController
   before_action :set_organization
 
   def index
-    @organizations = current_user.organizations
-    @settings = @organization.organization_setting || @organization.build_organization_setting
+    redirect_to settings_account_path
+  end
+
+  def account
+    # Account settings page (user-specific, not organization-specific)
   end
 
   def organization
@@ -12,10 +15,8 @@ class SettingsController < ApplicationController
     @settings = @organization.organization_setting || @organization.build_organization_setting
   end
 
-  def profile
-  end
-
   def billing
+    # Billing settings for the current organization
   end
 
   private

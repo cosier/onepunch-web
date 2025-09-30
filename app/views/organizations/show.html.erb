@@ -8,66 +8,42 @@
           View and manage your organization details
         </p>
       </div>
-
-      <% if current_user.admin_of?(@organization) %>
-        <%= link_to "Edit Organization", edit_organization_path(@organization),
-            class: "inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
-      <% end %>
     </div>
   </div>
-
-  <!-- Flash Messages -->
-  <% if notice.present? %>
-    <div class="mb-4 rounded-md bg-green-50 p-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm font-medium text-green-800"><%= notice %></p>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
-  <% if alert.present? %>
-    <div class="mb-4 rounded-md bg-red-50 p-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm font-medium text-red-800"><%= alert %></p>
-        </div>
-      </div>
-    </div>
-  <% end %>
 
   <!-- Organization Content -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Main Content -->
     <div class="lg:col-span-2 space-y-6">
-      <!-- Organization Details -->
+      <!-- Organization Details with Inline Editing -->
       <div class="bg-white shadow rounded-lg">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-lg font-medium text-gray-900">Organization Details</h2>
         </div>
 
-        <div class="p-6 space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Organization Name</label>
-              <p class="mt-1 text-sm text-gray-900"><%= @organization.name %></p>
-            </div>
+        <%= form_with model: @organization, data: { turbo: true, controller: "auto-submit" } do |f| %>
+          <div class="p-6 space-y-6">
+            <!-- Organization Name - Inline Editable -->
+            <% if current_user.admin_of?(@organization) && !@organization.personal? %>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Organization Name</label>
+                <%= f.text_field :name,
+                    data: { action: "blur->auto-submit#submit" },
+                    class: "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" %>
+                <p class="mt-1 text-xs text-gray-500">Click to edit, changes save automatically</p>
+              </div>
+            <% else %>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Organization Name</label>
+                <p class="mt-1 text-sm text-gray-900"><%= @organization.name %></p>
+              </div>
+            <% end %>
 
+            <!-- Organization Type (read-only) -->
             <div>
               <label class="block text-sm font-medium text-gray-700">Organization Type</label>
               <p class="mt-1">
-                <% if @organization.is_personal? %>
+                <% if @organization.personal? %>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     Personal Organization
                   </span>
@@ -79,27 +55,13 @@
               </p>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Organization Size</label>
-              <p class="mt-1 text-sm text-gray-900 capitalize"><%= @organization.size || 'Not specified' %></p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Currency</label>
-              <p class="mt-1 text-sm text-gray-900"><%= @organization.currency || 'USD' %></p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Time Zone</label>
-              <p class="mt-1 text-sm text-gray-900"><%= @organization.timezone || 'UTC' %></p>
-            </div>
-
+            <!-- Created Date (read-only) -->
             <div>
               <label class="block text-sm font-medium text-gray-700">Created</label>
               <p class="mt-1 text-sm text-gray-900"><%= @organization.created_at.strftime("%B %d, %Y") %></p>
             </div>
           </div>
-        </div>
+        <% end %>
       </div>
 
       <!-- Invoice Settings (if exists) -->
@@ -186,7 +148,7 @@
 
             <% if current_user.admin_of?(@organization) %>
               <div class="pt-4 border-t border-gray-200">
-                <%= link_to "Manage Team Members", "#",
+                <%= link_to "Manage Team Members", organization_members_path(@organization),
                     class: "w-full text-center inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
               </div>
             <% end %>
@@ -249,14 +211,11 @@
 
           <%= link_to "View Projects", projects_path,
               class: "w-full text-center inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
-
-          <%= link_to "View Invoices", invoices_path,
-              class: "w-full text-center inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
         </div>
       </div>
 
       <!-- Danger Zone -->
-      <% if current_user.owner_of?(@organization) && !@organization.is_personal? %>
+      <% if current_user.owner_of?(@organization) && !@organization.personal? %>
         <div class="bg-white shadow rounded-lg border border-red-200">
           <div class="px-6 py-4 border-b border-red-200 bg-red-50">
             <h3 class="text-base font-medium text-red-900">Danger Zone</h3>

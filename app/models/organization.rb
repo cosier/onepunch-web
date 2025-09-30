@@ -24,12 +24,12 @@ class Organization < ApplicationRecord
   scope :onboarded, -> { where.not(onboarded_at: nil) }
   scope :in_trial, -> { where(subscription_status: 'trial') }
   scope :active, -> { where(subscription_status: %w[trial active]) }
-  scope :personal, -> { where(is_personal: true) }
-  scope :business, -> { where(is_personal: false) }
+  scope :personal, -> { where(personal: true) }
+  scope :business, -> { where(personal: false) }
 
   # Instance methods
   def display_name
-    is_personal? ? "Personal Org." : name
+    personal? ? "Personal Org." : name
   end
   def owner
     memberships.find_by(role: "owner")&.user

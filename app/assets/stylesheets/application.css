@@ -14,3 +14,4 @@
 @tailwind utilities;
 
 @import "topbar";
+@import url("https://cdn.jsdelivr.net/npm/slim-select@2.8.2/dist/slimselect.css");

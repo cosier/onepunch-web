@@ -100,18 +100,6 @@
                   <dt class="text-gray-500">Created</dt>
                   <dd class="text-gray-900"><%= org.created_at.strftime("%b %d, %Y") %></dd>
                 </div>
-                <% if org.currency.present? %>
-                  <div class="flex items-center justify-between text-sm">
-                    <dt class="text-gray-500">Currency</dt>
-                    <dd class="text-gray-900"><%= org.currency %></dd>
-                  </div>
-                <% end %>
-                <% if org.size.present? %>
-                  <div class="flex items-center justify-between text-sm">
-                    <dt class="text-gray-500">Size</dt>
-                    <dd class="text-gray-900 capitalize"><%= org.size %></dd>
-                  </div>
-                <% end %>
               </dl>
             </div>
 

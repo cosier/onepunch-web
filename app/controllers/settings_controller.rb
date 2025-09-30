@@ -23,6 +23,6 @@ class SettingsController < ApplicationController
 
   def set_organization
     @organization = current_user.current_organization
-    redirect_to onboarding_path, alert: "Please complete onboarding first" if @organization.nil?
+    redirect_to new_onboarding_path, alert: "Please complete onboarding first" if @organization.nil?
   end
 end

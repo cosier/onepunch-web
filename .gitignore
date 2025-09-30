@@ -3,6 +3,8 @@
 .env.local
 .env.*.local
 
+.kamal/secrets
+
 # Ignore database files
 /db/*.sqlite3
 /db/*.sqlite3-*

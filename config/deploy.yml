@@ -8,9 +8,7 @@ image: hilarioinc/onepunch
 servers:
   web:
     hosts:
-      - 100.64.0.91
-    options:
-      network: "kamal"
+      - 100.64.0.48
 
 # Credentials for GitHub Container Registry
 registry:
@@ -34,12 +32,16 @@ env:
     RAILS_SERVE_STATIC_FILES: "true"
   secret:
     - RAILS_MASTER_KEY
+    - GOOGLE_CLIENT_ID
+    - GOOGLE_CLIENT_SECRET
+    - STRIPE_PUBLISHABLE_KEY
+    - STRIPE_SECRET_KEY
 
-# Use kamal-proxy v2 (behind nginx on port 8080)
+# Use kamal-proxy v2
 proxy:
-  ssl: false  # SSL terminated at nginx level
+  ssl: true
   host: onepunch.work
-  forward_headers: true  # Forward X-Forwarded-* headers from nginx
+  forward_headers: true
 
 # SSH configuration
 ssh:

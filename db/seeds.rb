@@ -33,20 +33,14 @@ puts "✅ Created users: #{user1.email}, #{user2.email}, #{user3.email}"
 org1 = Organization.find_or_create_by!(name: "Demo Company") do |o|
   o.slug = "demo-company"
   o.billing_email = "billing@democompany.com"
-  o.timezone = "America/New_York"
-  o.currency = "USD"
   o.industry = "technology"
-  o.size = "small"
   o.onboarded_at = 1.month.ago
 end
 
 org2 = Organization.find_or_create_by!(name: "Creative Studio") do |o|
   o.slug = "creative-studio"
   o.billing_email = "hello@creative.com"
-  o.timezone = "America/Los_Angeles"
-  o.currency = "USD"
   o.industry = "design"
-  o.size = "medium"
   o.onboarded_at = 2.weeks.ago
 end
 

@@ -12,8 +12,6 @@ class Organization < ApplicationRecord
   # Validations
   validates :name, presence: true, uniqueness: true
   validates :slug, presence: true, uniqueness: true
-  validates :currency, inclusion: { in: %w[USD EUR GBP CAD AUD] }, allow_nil: true
-  validates :size, inclusion: { in: %w[solo small medium large] }, allow_nil: true
 
   # Callbacks
   before_validation :generate_slug
@@ -74,10 +72,7 @@ class Organization < ApplicationRecord
   end
 
   def set_default_settings
-    self.currency ||= 'USD'
-    self.timezone ||= 'UTC'
     self.subscription_status ||= 'trial'
     self.trial_ends_at ||= 14.days.from_now
-    save if changed?
   end
 end

@@ -3,14 +3,10 @@ module OnboardingRequirement
 
   # Check if user has completed all setup requirements
   def setup_complete?
-    organization_created? && asana_connected? && first_project_created?
+    asana_connected? && first_project_created?
   end
 
   # Individual requirement checks
-  def organization_created?
-    current_organization.present? && current_organization.onboarded?
-  end
-
   def asana_connected?
     # TODO: Implement after Asana integration
     # asana_credential.present? && asana_credential.valid_token?
@@ -24,7 +20,6 @@ module OnboardingRequirement
   # Get list of incomplete requirements for display
   def incomplete_requirements
     requirements = []
-    requirements << { name: "Create organization", completed: organization_created?, path: "/onboarding/new" } unless organization_created?
     requirements << { name: "Connect Asana", completed: asana_connected?, path: "#" } unless asana_connected?
     requirements << { name: "Create first project", completed: first_project_created?, path: "/projects/new" } unless first_project_created?
     requirements
@@ -32,8 +27,8 @@ module OnboardingRequirement
 
   # Get completion percentage
   def setup_completion_percentage
-    total = 3
-    completed = [organization_created?, asana_connected?, first_project_created?].count(true)
+    total = 2
+    completed = [asana_connected?, first_project_created?].count(true)
     (completed.to_f / total * 100).round
   end
 end

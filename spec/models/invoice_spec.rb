@@ -100,8 +100,8 @@ RSpec.describe Invoice, type: :model do
     describe 'calculate_totals' do
       it 'calculates subtotal from line items' do
         invoice = create(:invoice, organization: organization, client: client)
-        invoice.line_items.create!(description: 'Item 1', quantity: 2, rate: 50, amount: 100)
-        invoice.line_items.create!(description: 'Item 2', quantity: 1, rate: 75, amount: 75)
+        invoice.line_items.create!(description: 'Item 1', quantity: 2, unit_price: 50, amount: 100)
+        invoice.line_items.create!(description: 'Item 2', quantity: 1, unit_price: 75, amount: 75)
 
         invoice.save!
 
@@ -110,7 +110,7 @@ RSpec.describe Invoice, type: :model do
 
       it 'calculates tax amount based on tax_rate' do
         invoice = create(:invoice, organization: organization, client: client, tax_rate: 10)
-        invoice.line_items.create!(description: 'Item', quantity: 1, rate: 100, amount: 100)
+        invoice.line_items.create!(description: 'Item', quantity: 1, unit_price: 100, amount: 100)
 
         invoice.save!
 
@@ -119,7 +119,7 @@ RSpec.describe Invoice, type: :model do
 
       it 'calculates total as subtotal plus tax' do
         invoice = create(:invoice, organization: organization, client: client, tax_rate: 15)
-        invoice.line_items.create!(description: 'Item', quantity: 1, rate: 100, amount: 100)
+        invoice.line_items.create!(description: 'Item', quantity: 1, unit_price: 100, amount: 100)
 
         invoice.save!
 
@@ -128,7 +128,7 @@ RSpec.describe Invoice, type: :model do
 
       it 'handles zero tax rate' do
         invoice = create(:invoice, organization: organization, client: client, tax_rate: 0)
-        invoice.line_items.create!(description: 'Item', quantity: 1, rate: 100, amount: 100)
+        invoice.line_items.create!(description: 'Item', quantity: 1, unit_price: 100, amount: 100)
 
         invoice.save!
 
@@ -155,10 +155,10 @@ RSpec.describe Invoice, type: :model do
       it 'sets paid_at timestamp' do
         invoice = create(:invoice, :sent, organization: organization, client: client)
 
-        travel_to Time.current do
-          invoice.mark_as_paid!
-          expect(invoice.paid_at).to be_within(1.second).of(Time.current)
-        end
+        invoice.mark_as_paid!
+
+        expect(invoice.paid_at).to be_present
+        expect(invoice.paid_at).to eq(Date.current)
       end
     end
 
@@ -198,7 +198,8 @@ RSpec.describe Invoice, type: :model do
 
     it 'can create invoice with line items' do
       invoice = create(:invoice, organization: organization, client: client)
-      invoice.line_items.create!(description: 'Service', quantity: 10, rate: 50, amount: 500)
+      invoice.line_items.create!(description: 'Service', quantity: 10, unit_price: 50, amount: 500)
+      invoice.save!
 
       expect(invoice.line_items.count).to eq(1)
       expect(invoice.reload.subtotal).to eq(500.0)

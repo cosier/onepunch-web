@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :invoice do
     association :organization
     association :client
-    association :project, optional: true
+    project { nil }
 
     sequence(:number) { |n| "INV-#{n.to_s.rjust(4, '0')}" }
     issued_at { Date.current }
@@ -19,7 +19,6 @@ FactoryBot.define do
 
     trait :sent do
       status { :sent }
-      sent_at { Time.current }
     end
 
     trait :paid do

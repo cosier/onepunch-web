@@ -1,11 +1,32 @@
-FactoryBot.define do
+ FactoryBot.define do
   factory :invitation do
-    organization { nil }
-    invited_by { 1 }
-    email { "MyString" }
-    token { "MyString" }
-    role { "MyString" }
-    accepted_at { "2025-09-29 19:20:59" }
-    expires_at { "2025-09-29 19:20:59" }
+    association :organization
+    association :invited_by, factory: :user
+    sequence(:email) { |n| "invite#{n}@example.com" }
+    sequence(:token) { |n| "token-#{n}-#{SecureRandom.hex(8)}" }
+    role { "member" }
+    accepted_at { nil }
+    expires_at { 7.days.from_now }
+
+    trait :admin do
+      role { "admin" }
+    end
+
+    trait :owner do
+      role { "owner" }
+    end
+
+    trait :accepted do
+      accepted_at { 1.day.ago }
+    end
+
+    trait :expired do
+      expires_at { 1.day.ago }
+    end
+
+    trait :valid do
+      accepted_at { nil }
+      expires_at { 7.days.from_now }
+    end
   end
 end

@@ -30,7 +30,7 @@ class Invoice < ApplicationRecord
     return if number.present?
     return unless organization
 
-    last_number = organization.invoices.maximum(:number)&.to_i || 0
+    last_number = organization.invoices.maximum(:number)&.scan(/\d+/)&.first&.to_i || 0
     self.number = format("INV-%04d", last_number + 1)
   end
 

@@ -6,7 +6,7 @@ class Invitation < ApplicationRecord
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :token, presence: true, uniqueness: true
   validates :role, inclusion: { in: %w[owner admin member] }
-  validate :email_not_already_member
+  validate :email_not_already_member, on: :create
 
   # Callbacks
   before_validation :generate_token, on: :create
@@ -57,7 +57,7 @@ class Invitation < ApplicationRecord
   private
 
   def generate_token
-    self.token = SecureRandom.urlsafe_base64(32)
+    self.token ||= SecureRandom.urlsafe_base64(32)
   end
 
   def set_expiration

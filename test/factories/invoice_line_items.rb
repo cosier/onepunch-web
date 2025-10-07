@@ -3,7 +3,7 @@ FactoryBot.define do
     association :invoice
     description { "Consulting services" }
     quantity { 10.0 }
-    rate { 100.0 }
+    unit_price { 100.0 }
     amount { 1000.0 }
   end
 end

@@ -2,7 +2,7 @@
 service: onepunch
 
 # Name of the container image
-image: hilarioinc/onepunch
+image: hilarioinc/onepunch:production
 
 # Deploy to these servers (using Tailscale network)
 servers:
@@ -13,7 +13,7 @@ servers:
 # Credentials for GitHub Container Registry
 registry:
   server: ghcr.io
-  username: cosier
+  username: hilarioinc
   password:
     - KAMAL_REGISTRY_PASSWORD
 
@@ -37,7 +37,7 @@ env:
 
 # Use kamal-proxy v2
 proxy:
-  ssl: true
+  ssl: false
   host: onepunch.work
   forward_headers: true
 

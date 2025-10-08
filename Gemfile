@@ -73,7 +73,7 @@ gem "jwt"
 
 # UI Components
 gem "view_component"
-gem "heroicon"
+gem "rails_icons"
 
 # Deployment
 gem "kamal", require: false

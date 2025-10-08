@@ -22,9 +22,10 @@ class Settings::AvatarsController < ApplicationController
               turbo_stream.replace("avatar-preview",
                 partial: "settings/avatars/preview",
                 locals: { user: current_user }),
-              turbo_stream.replace("flash-messages",
+              turbo_stream.replace("flash",
                 partial: "shared/flash",
-                locals: { flash: { notice: "Avatar updated successfully!" } })
+                locals: { flash: { notice: "Avatar updated successfully!" } }),
+              turbo_stream.append("head", "<script>document.querySelector('[data-controller=\"avatar-modal\"]').dispatchEvent(new CustomEvent('avatar:uploaded'))</script>")
             ]
           end
           format.html { redirect_to settings_account_path, notice: "Avatar updated successfully!" }

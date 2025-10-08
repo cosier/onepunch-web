@@ -10,10 +10,7 @@
         <!-- Quick Timer Start for Projects -->
         <div class="flex items-center space-x-2">
           <% @projects.first(3).each do |project| %>
-            <%= render "shared/timer_button",
-                project: project,
-                icon_only: true,
-                size: "small" %>
+            <%= render "shared/quick_timer_chip", project: project %>
           <% end %>
         </div>
         <%= link_to "New Project", new_project_path,
@@ -28,9 +25,7 @@
     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-purple-100">Today</h3>
-        <svg class="h-5 w-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <%= icon "clock", class: "h-5 w-5 text-purple-200" %>
       </div>
       <p class="text-3xl font-bold"><%= format_duration(@today_duration) %></p>
       <% if @today_projects.any? %>
@@ -44,9 +39,7 @@
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-blue-100">This Week</h3>
-        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
+        <%= icon "calendar", class: "h-5 w-5 text-blue-200" %>
       </div>
       <p class="text-3xl font-bold"><%= format_duration(@week_duration) %></p>
       <div class="mt-3 pt-3 border-t border-blue-400">
@@ -60,9 +53,7 @@
     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-green-100">This Month</h3>
-        <svg class="h-5 w-5 text-green-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
+        <%= icon "building", class: "h-5 w-5 text-green-200" %>
       </div>
       <p class="text-3xl font-bold"><%= number_with_precision(@current_month_hours, precision: 1) %>h</p>
       <% if @current_month_billable > 0 %>
@@ -79,9 +70,7 @@
       <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white animate-pulse">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-medium text-orange-100">Timer Running</h3>
-          <svg class="h-5 w-5 text-orange-200 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <%= icon "clock", class: "h-5 w-5 text-orange-200 animate-spin" %>
         </div>
         <p class="text-lg font-bold truncate"><%= @current_timer.project.name %></p>
         <div class="mt-3 pt-3 border-t border-orange-400">
@@ -94,9 +83,7 @@
       <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between mb-2">
           <h3 class="text-sm font-medium text-indigo-100">Active Projects</h3>
-          <svg class="h-5 w-5 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
+          <%= icon "briefcase", class: "h-5 w-5 text-indigo-200" %>
         </div>
         <p class="text-3xl font-bold"><%= @projects.count %></p>
         <div class="mt-3 pt-3 border-t border-indigo-400">
@@ -151,15 +138,11 @@
         <div class="flex space-x-2">
           <%= link_to dashboard_path(month: (@calendar_month - 1.month).to_s),
               class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+            <%= icon "chevron-left", class: "w-5 h-5" %>
           <% end %>
           <%= link_to dashboard_path(month: (@calendar_month + 1.month).to_s),
               class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+            <%= icon "chevron-right", class: "w-5 h-5" %>
           <% end %>
         </div>
       </div>

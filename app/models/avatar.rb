@@ -2,7 +2,7 @@ class Avatar < ApplicationRecord
   belongs_to :user
   has_one_attached :image
 
-  enum source: {
+  enum :source, {
     uploaded: 0,
     google: 1,
     gravatar: 2

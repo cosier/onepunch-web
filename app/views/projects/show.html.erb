@@ -34,9 +34,7 @@
     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-purple-100">Today</h3>
-        <svg class="h-5 w-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <%= icon "clock", class: "h-5 w-5 text-purple-200" %>
       </div>
       <p class="text-3xl font-bold"><%= number_with_precision(@today_hours, precision: 1) %></p>
       <p class="text-xs text-purple-200 mt-1">hours tracked</p>
@@ -46,9 +44,7 @@
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-blue-100">This Week</h3>
-        <svg class="h-5 w-5 text-blue-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
+        <%= icon "calendar", class: "h-5 w-5 text-blue-200" %>
       </div>
       <p class="text-3xl font-bold"><%= number_with_precision(@current_week_hours, precision: 1) %></p>
       <p class="text-xs text-blue-200 mt-1">hours (<%= number_with_precision(@current_week_billable, precision: 1) %> billable)</p>
@@ -58,9 +54,7 @@
     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-sm font-medium text-green-100">This Month</h3>
-        <svg class="h-5 w-5 text-green-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-        </svg>
+        <%= icon "building", class: "h-5 w-5 text-green-200" %>
       </div>
       <p class="text-3xl font-bold"><%= number_with_precision(@current_month_hours, precision: 1) %></p>
       <p class="text-xs text-green-200 mt-1">hours (<%= number_with_precision(@current_month_billable, precision: 1) %> billable)</p>
@@ -209,15 +203,11 @@
         <div class="flex space-x-2">
           <%= link_to project_path(@project, month: (@calendar_month - 1.month).to_s),
               class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+            <%= icon "chevron-left", class: "w-5 h-5" %>
           <% end %>
           <%= link_to project_path(@project, month: (@calendar_month + 1.month).to_s),
               class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+            <%= icon "chevron-right", class: "w-5 h-5" %>
           <% end %>
         </div>
       </div>
@@ -390,9 +380,7 @@
         </div>
       <% else %>
       <div class="px-6 py-12 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <%= icon "clock", class: "mx-auto h-12 w-12 text-gray-400" %>
         <h3 class="mt-2 text-sm font-medium text-gray-900">No time entries yet</h3>
         <p class="mt-1 text-sm text-gray-500">Start tracking time on this project to see entries here.</p>
         <div class="mt-6">

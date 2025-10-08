@@ -181,8 +181,6 @@ GEM
       activesupport (>= 7.1)
     hashdiff (1.2.1)
     hashie (5.0.0)
-    heroicon (1.0.0)
-      rails (>= 5.2)
     hotwire-livereload (2.0.0)
       actioncable (>= 7.0.0)
       listen (>= 3.0.0)
@@ -341,6 +339,9 @@ GEM
     rails-html-sanitizer (1.6.2)
       loofah (~> 2.21)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    rails_icons (1.4.0)
+      nokogiri (~> 1.16, >= 1.16.4)
+      rails (> 6.1)
     rainbow (3.1.1)
     rake (13.3.0)
     rb-fsevent (0.11.2)
@@ -539,7 +540,6 @@ DEPENDENCIES
   factory_bot_rails
   faker
   groupdate
-  heroicon
   hotwire-livereload
   httparty
   image_processing (~> 1.2)
@@ -554,6 +554,7 @@ DEPENDENCIES
   puma (>= 6.0)
   rack-cors
   rails!
+  rails_icons
   redis (>= 5.0)
   rspec-rails (~> 7.1)
   rubocop-rails-omakase

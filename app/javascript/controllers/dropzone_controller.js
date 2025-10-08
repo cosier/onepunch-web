@@ -8,6 +8,7 @@ export default class extends Controller {
   }
 
   connect() {
+    console.log("Dropzone controller connected!", this.element)
     this.element.addEventListener("dragover", this.handleDragOver.bind(this))
     this.element.addEventListener("drop", this.handleDrop.bind(this))
     this.element.addEventListener("dragleave", this.handleDragLeave.bind(this))
@@ -46,7 +47,10 @@ export default class extends Controller {
   }
 
   handleClick(e) {
-    e.preventDefault()
+    console.log("Dropzone clicked!", e)
+    // Don't preventDefault on the click - it prevents file input from opening!
+    // e.preventDefault()
+    console.log("Input target:", this.inputTarget)
     this.inputTarget.click()
   }
 
@@ -93,13 +97,17 @@ export default class extends Controller {
     dataTransfer.items.add(file)
     this.inputTarget.files = dataTransfer.files
 
-    // Auto-submit if form target exists
-    if (this.hasFormTarget) {
-      // Small delay to ensure preview is shown
-      setTimeout(() => {
-        this.formTarget.requestSubmit()
-      }, 100)
-    }
+    console.log("File set on input:", this.inputTarget.files)
+    console.log("File input name:", this.inputTarget.name)
+    console.log("Form target exists:", this.hasFormTarget)
+
+    // Auto-submit if form target exists - DISABLED FOR NOW
+    // if (this.hasFormTarget) {
+    //   // Small delay to ensure preview is shown
+    //   setTimeout(() => {
+    //     this.formTarget.requestSubmit()
+    //   }, 100)
+    // }
   }
 
   removeFile(e) {

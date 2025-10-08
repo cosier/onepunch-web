@@ -92,24 +92,45 @@
 
           <!-- Avatar options -->
           <div class="space-y-3">
-            <% if current_user.avatar_url.present? && (!current_user.active_avatar || current_user.active_avatar.source != 'google') %>
-              <!-- Revert to Google avatar -->
-              <%= button_to revert_settings_avatar_path,
-                  method: :post,
-                  class: "w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50" do %>
-                <div class="flex items-center space-x-3">
-                  <img src="<%= current_user.avatar_url %>"
-                       alt="Google profile"
-                       class="h-10 w-10 rounded-full object-cover"
-                       onerror="this.onerror=null; this.src='<%= current_user.gravatar_url %>'">
-                  <div class="text-left">
-                    <p class="text-sm font-medium text-gray-900">Use Google Profile Picture</p>
-                    <p class="text-xs text-gray-500">Revert to your Google account picture</p>
+            <% if current_user.avatar_url.present? %>
+              <% google_is_active = current_user.active_avatar && current_user.active_avatar.source == 'google' %>
+
+              <% if google_is_active %>
+                <!-- Google avatar is currently active (disabled state) -->
+                <div class="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 cursor-not-allowed opacity-75">
+                  <div class="flex items-center space-x-3">
+                    <img src="<%= current_user.avatar_url %>"
+                         alt="Google profile"
+                         class="h-10 w-10 rounded-full object-cover"
+                         onerror="this.onerror=null; this.src='<%= current_user.gravatar_url %>'">
+                    <div class="text-left">
+                      <p class="text-sm font-medium text-gray-700">Google Profile Picture</p>
+                      <p class="text-xs text-green-600 font-medium">Currently active</p>
+                    </div>
                   </div>
+                  <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
                 </div>
-                <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
+              <% else %>
+                <!-- Revert to Google avatar button (active state) -->
+                <%= button_to revert_settings_avatar_path,
+                    method: :post,
+                    class: "w-full flex items-center justify-between px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50" do %>
+                  <div class="flex items-center space-x-3">
+                    <img src="<%= current_user.avatar_url %>"
+                         alt="Google profile"
+                         class="h-10 w-10 rounded-full object-cover"
+                         onerror="this.onerror=null; this.src='<%= current_user.gravatar_url %>'">
+                    <div class="text-left">
+                      <p class="text-sm font-medium text-gray-900">Use Google Profile Picture</p>
+                      <p class="text-xs text-gray-500">Revert to your Google account picture</p>
+                    </div>
+                  </div>
+                  <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                  </svg>
+                <% end %>
               <% end %>
             <% end %>
 

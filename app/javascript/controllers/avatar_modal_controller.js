@@ -5,10 +5,16 @@ export default class extends Controller {
 
   connect() {
     this.handleEscape = this.handleEscape.bind(this)
-    this.handleUploadSuccess = this.handleUploadSuccess.bind(this)
+
+    // Create handleUploadSuccess method if it doesn't exist
+    if (!this.handleUploadSuccess) {
+      this.handleUploadSuccess = () => {
+        this.close()
+      }
+    }
 
     // Listen for successful upload events
-    document.addEventListener("avatar:uploaded", this.handleUploadSuccess)
+    document.addEventListener("avatar:uploaded", this.handleUploadSuccess.bind(this))
   }
 
   disconnect() {
@@ -78,10 +84,5 @@ export default class extends Controller {
     if (event.key === "Escape") {
       this.close()
     }
-  }
-
-  handleUploadSuccess(event) {
-    // Close the modal when avatar is successfully uploaded
-    this.close()
   }
 }

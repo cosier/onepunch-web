@@ -101,13 +101,13 @@ export default class extends Controller {
     console.log("File input name:", this.inputTarget.name)
     console.log("Form target exists:", this.hasFormTarget)
 
-    // Auto-submit if form target exists - DISABLED FOR NOW
-    // if (this.hasFormTarget) {
-    //   // Small delay to ensure preview is shown
-    //   setTimeout(() => {
-    //     this.formTarget.requestSubmit()
-    //   }, 100)
-    // }
+    // Auto-submit if form target exists
+    if (this.hasFormTarget) {
+      // Small delay to ensure preview is shown
+      setTimeout(() => {
+        this.formTarget.requestSubmit()
+      }, 100)
+    }
   }
 
   removeFile(e) {

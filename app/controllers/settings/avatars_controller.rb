@@ -22,11 +22,14 @@ class Settings::AvatarsController < ApplicationController
               turbo_stream.replace("avatar-preview",
                 partial: "settings/avatars/preview",
                 locals: { user: current_user }),
+              turbo_stream.replace_all(".user-avatar",
+                partial: "shared/avatar",
+                locals: { user: current_user, size: 'small' }),
               turbo_stream.append("flash",
                 partial: "shared/flash",
                 locals: { flash: { notice: "Avatar updated successfully!" } }),
               turbo_stream.append_all("body",
-                "<script>document.dispatchEvent(new CustomEvent('avatar:uploaded')); setTimeout(() => document.currentScript.remove(), 0)</script>")
+                "<script>document.dispatchEvent(new CustomEvent('avatar:uploaded'));</script>")
             ]
           end
           format.html { redirect_to settings_account_path, notice: "Avatar updated successfully!" }
@@ -34,7 +37,7 @@ class Settings::AvatarsController < ApplicationController
       else
         respond_to do |format|
           format.turbo_stream do
-            render turbo_stream: turbo_stream.replace("flash-messages",
+            render turbo_stream: turbo_stream.append("flash",
               partial: "shared/flash",
               locals: { flash: { alert: "Failed to update avatar: #{avatar.errors.full_messages.join(', ')}" } })
           end
@@ -63,9 +66,14 @@ class Settings::AvatarsController < ApplicationController
             turbo_stream.replace("avatar-preview",
               partial: "settings/avatars/preview",
               locals: { user: current_user }),
-            turbo_stream.replace("flash-messages",
+            turbo_stream.replace_all(".user-avatar",
+              partial: "shared/avatar",
+              locals: { user: current_user, size: 'small' }),
+            turbo_stream.append("flash",
               partial: "shared/flash",
-              locals: { flash: { notice: "Avatar removed successfully!" } })
+              locals: { flash: { notice: "Avatar removed successfully!" } }),
+            turbo_stream.append_all("body",
+              "<script>document.dispatchEvent(new CustomEvent('avatar:uploaded'));</script>")
           ]
         end
         format.html { redirect_to settings_account_path, notice: "Avatar removed successfully!" }
@@ -96,9 +104,14 @@ class Settings::AvatarsController < ApplicationController
             turbo_stream.replace("avatar-preview",
               partial: "settings/avatars/preview",
               locals: { user: current_user }),
-            turbo_stream.replace("flash-messages",
+            turbo_stream.replace_all(".user-avatar",
+              partial: "shared/avatar",
+              locals: { user: current_user, size: 'small' }),
+            turbo_stream.append("flash",
               partial: "shared/flash",
-              locals: { flash: { notice: "Reverted to Google profile picture!" } })
+              locals: { flash: { notice: "Reverted to Google profile picture!" } }),
+            turbo_stream.append_all("body",
+              "<script>document.dispatchEvent(new CustomEvent('avatar:uploaded'));</script>")
           ]
         end
         format.html { redirect_to settings_account_path, notice: "Reverted to Google profile picture!" }

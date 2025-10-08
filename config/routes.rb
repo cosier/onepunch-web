@@ -35,6 +35,17 @@ Rails.application.routes.draw do
     get :organization
     get :billing
     get :account
+
+    # Password setup for OAuth users
+    get "password/setup", to: "/password_setup#new", as: :password_setup
+    post "password/setup", to: "/password_setup#create"
+    patch "password/setup", to: "/password_setup#create"
+
+    # Avatar management
+    resource :avatar, only: [:update, :destroy] do
+      post :revert
+    end
+
     namespace :integrations do
       get :asana
       post :sync_asana

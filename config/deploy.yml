@@ -2,7 +2,7 @@
 service: onepunch
 
 # Name of the container image
-image: hilarioinc/onepunch:production
+image: hilarioinc/onepunch
 
 # Deploy to these servers (using Tailscale network)
 servers:

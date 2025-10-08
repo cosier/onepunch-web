@@ -9,9 +9,15 @@ Rails.application.config.middleware.use OmniAuth::Builder do
       image_size: 200,
       name: 'google',
       access_type: 'offline',
-      skip_jwt: true
+      skip_jwt: true,
+      provider_ignores_state: true  # Disable CSRF check for OAuth
     }
 end
 
 OmniAuth.config.allowed_request_methods = [:post, :get]
 OmniAuth.config.silence_get_warning = true
+
+# Handle OAuth failures gracefully
+OmniAuth.config.on_failure = Proc.new { |env|
+  OmniAuth::FailureEndpoint.new(env).redirect_to_failure
+}

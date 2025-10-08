@@ -10,7 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_09_30_110948) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_08_111927) do
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.bigint "record_id", null: false
+    t.string "record_type", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.string "content_type"
+    t.datetime "created_at", null: false
+    t.string "filename", null: false
+    t.string "key", null: false
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "asana_credentials", force: :cascade do |t|
     t.string "access_token"
     t.string "asana_user_gid"
@@ -66,6 +94,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_110948) do
     t.index ["asana_gid"], name: "index_asana_workspaces_on_asana_gid", unique: true
     t.index ["user_id", "asana_gid"], name: "index_asana_workspaces_on_user_id_and_asana_gid", unique: true
     t.index ["user_id"], name: "index_asana_workspaces_on_user_id"
+  end
+
+  create_table "avatars", force: :cascade do |t|
+    t.boolean "active", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "processed_at"
+    t.integer "source", default: 0, null: false
+    t.string "source_url"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["source"], name: "index_avatars_on_source"
+    t.index ["user_id", "active"], name: "index_avatars_on_user_id_and_active"
+    t.index ["user_id"], name: "index_avatars_on_user_id"
   end
 
   create_table "clients", force: :cascade do |t|
@@ -236,6 +277,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_110948) do
     t.string "google_uid"
     t.string "last_name"
     t.datetime "last_sign_in_at"
+    t.boolean "password_auto_generated", default: false, null: false
     t.string "password_digest"
     t.integer "role", default: 0
     t.string "timezone", default: "UTC"
@@ -246,11 +288,14 @@ ActiveRecord::Schema[8.1].define(version: 2025_09_30_110948) do
     t.index ["id", "current_organization_id"], name: "index_users_on_id_and_current_organization_id"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "asana_credentials", "users"
   add_foreign_key "asana_projects", "asana_workspaces"
   add_foreign_key "asana_projects", "projects"
   add_foreign_key "asana_tasks", "time_entries"
   add_foreign_key "asana_workspaces", "users"
+  add_foreign_key "avatars", "users"
   add_foreign_key "clients", "organizations"
   add_foreign_key "invitations", "organizations"
   add_foreign_key "invitations", "users", column: "invited_by_id"

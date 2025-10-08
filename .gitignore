@@ -72,3 +72,6 @@ yarn-debug.log*
 .overmind.sock
 .overmind.state
 Procfile.dev.local
+
+# Cloudflare tunnel credentials
+.cloudflared/credentials.json

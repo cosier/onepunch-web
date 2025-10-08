@@ -2,14 +2,14 @@ class TimeEntriesController < ApplicationController
   include ActionView::RecordIdentifier
 
   before_action :authenticate_user!
-  before_action :set_time_entry, only: [:show, :edit, :update, :destroy, :stop, :resume]
+  before_action :set_time_entry, only: [ :show, :edit, :update, :destroy, :stop, :resume ]
 
   def index
     # Get selected organizations (default to current if none selected)
     selected_org_ids = if params[:organization_ids].present?
       params[:organization_ids].reject(&:blank?)
     else
-      [current_organization&.id].compact
+      [ current_organization&.id ].compact
     end
 
     # Validate user has access to these organizations
@@ -44,6 +44,46 @@ class TimeEntriesController < ApplicationController
 
     # All organizations for filter dropdown
     @all_organizations = current_user.organizations
+
+    # Weekly analytics data for weekly view widget
+    current_date = Date.current
+
+    # Daily breakdown for current week
+    @daily_breakdown = (0..6).map do |days_ago|
+      day = current_date.beginning_of_week + days_ago.days
+      day_entries = current_user.time_entries
+        .where(project_id: all_project_ids)
+        .where(started_at: day.beginning_of_day..day.end_of_day)
+
+      day_entries = day_entries.where(project_id: params[:project_id]) if params[:project_id].present?
+
+      {
+        date: day,
+        day_name: day.strftime("%A"),
+        day_short: day.strftime("%a"),
+        hours: (day_entries.sum(:duration) || 0) / 3600.0,
+        billable_hours: (day_entries.billable.sum(:duration) || 0) / 3600.0,
+        entries: day_entries.count,
+        projects: day_entries.includes(:project).pluck(:project_id).uniq.count
+      }
+    end
+
+    # Weekly breakdown for last 8 weeks
+    @weekly_breakdown = (0..7).map do |weeks_ago|
+      week_start = current_date.beginning_of_week - weeks_ago.weeks
+      week_end = week_start.end_of_week
+      week_entries = current_user.time_entries
+        .where(project_id: all_project_ids)
+        .where(started_at: week_start..week_end)
+
+      week_entries = week_entries.where(project_id: params[:project_id]) if params[:project_id].present?
+
+      {
+        week: week_start.strftime("%b %d"),
+        hours: (week_entries.sum(:duration) || 0) / 3600.0,
+        billable_hours: (week_entries.billable.sum(:duration) || 0) / 3600.0
+      }
+    end.reverse
   end
 
   def show

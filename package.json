@@ -1,0 +1,14 @@
+{
+  "name": "onepunch",
+  "version": "1.0.0",
+  "description": "OnePunch time tracking application with Cloudflare tunnel",
+  "scripts": {
+    "tunnel": "wrangler tunnel",
+    "tunnel:create": "wrangler tunnel create",
+    "tunnel:list": "wrangler tunnel list",
+    "tunnel:delete": "wrangler tunnel delete"
+  },
+  "devDependencies": {
+    "wrangler": "^3.95.0"
+  }
+}

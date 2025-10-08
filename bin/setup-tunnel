@@ -1,0 +1,87 @@
+#!/bin/bash
+
+echo "🔧 Setting up Cloudflare Tunnel for OnePunch"
+echo "============================================"
+echo ""
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+TUNNEL_NAME="onepunch-dev"
+HOSTNAME="dev.onepunch.work"
+
+echo -e "${YELLOW}Step 1: Authenticate with Cloudflare${NC}"
+echo "This will open a browser window for authentication..."
+echo ""
+
+# First, let's delete the old tunnel if it exists (in case credentials are wrong)
+echo -e "${YELLOW}Checking for existing tunnel...${NC}"
+if cloudflared tunnel list --name $TUNNEL_NAME 2>/dev/null | grep -q $TUNNEL_NAME; then
+    echo -e "${RED}Found existing tunnel '$TUNNEL_NAME'. Please delete it manually if needed:${NC}"
+    echo "  cloudflared tunnel delete $TUNNEL_NAME"
+    echo ""
+    echo "Proceed anyway? (y/n)"
+    read -r response
+    if [[ "$response" != "y" ]]; then
+        echo "Exiting..."
+        exit 1
+    fi
+else
+    echo -e "${GREEN}No existing tunnel found. Proceeding...${NC}"
+fi
+
+# Authenticate - this will open browser
+echo -e "${YELLOW}Please login to Cloudflare in your browser...${NC}"
+cloudflared tunnel login
+
+echo ""
+echo -e "${YELLOW}Step 2: Create new tunnel${NC}"
+cloudflared tunnel create $TUNNEL_NAME
+
+echo ""
+echo -e "${YELLOW}Step 3: Get tunnel credentials${NC}"
+# The credentials file should have been created automatically
+CRED_FILE="$HOME/.cloudflared/${TUNNEL_NAME}.json"
+if [ -f "$CRED_FILE" ]; then
+    echo -e "${GREEN}Found credentials file${NC}"
+    cp "$CRED_FILE" .cloudflared/credentials.json
+    echo -e "${GREEN}Copied credentials to .cloudflared/credentials.json${NC}"
+else
+    echo -e "${RED}Credentials file not found at $CRED_FILE${NC}"
+    echo "Looking for tunnel UUID..."
+    TUNNEL_ID=$(cloudflared tunnel list --name $TUNNEL_NAME --output json | jq -r '.[0].id')
+    if [ -z "$TUNNEL_ID" ]; then
+        echo -e "${RED}Could not find tunnel ID. Please check cloudflared tunnel list${NC}"
+        exit 1
+    fi
+    echo "Found tunnel ID: $TUNNEL_ID"
+    CRED_FILE="$HOME/.cloudflared/${TUNNEL_ID}.json"
+    if [ -f "$CRED_FILE" ]; then
+        echo -e "${GREEN}Found credentials file by ID${NC}"
+        cp "$CRED_FILE" .cloudflared/credentials.json
+        echo -e "${GREEN}Copied credentials to .cloudflared/credentials.json${NC}"
+    else
+        echo -e "${RED}Could not find credentials file${NC}"
+        exit 1
+    fi
+fi
+
+echo ""
+echo -e "${YELLOW}Step 4: Configure DNS${NC}"
+echo "Adding CNAME record for $HOSTNAME..."
+cloudflared tunnel route dns $TUNNEL_NAME $HOSTNAME
+
+echo ""
+echo -e "${GREEN}✅ Tunnel setup complete!${NC}"
+echo ""
+echo "To start the tunnel, run:"
+echo -e "${GREEN}  bin/tunnel${NC}"
+echo ""
+echo "Your app will be accessible at:"
+echo -e "${GREEN}  https://$HOSTNAME${NC}"
+echo ""
+echo "Make sure your Rails app is running on port 2030 first:"
+echo -e "${GREEN}  bin/dev${NC}"

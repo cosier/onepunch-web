@@ -17,7 +17,7 @@ class SessionsController < ApplicationController
 
   def destroy
     logout
-    redirect_to root_path, notice: "Logged out successfully"
+    redirect_to root_path, notice: "Logged out successfully", status: :see_other
   end
 
   def omniauth

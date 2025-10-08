@@ -13,6 +13,14 @@
     </div>
   </div>
 
+  <!-- Weekly View Widget -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <%= render "shared/weekly_view", 
+        daily_breakdown: @daily_breakdown, 
+        weekly_breakdown: @weekly_breakdown,
+        standalone: true %>
+  </div>
+
   <!-- Filters -->
   <div class="bg-white rounded-lg shadow mb-6"
        data-controller="time-entries-filter"

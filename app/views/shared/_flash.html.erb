@@ -1,4 +1,10 @@
-<% if notice.present? %>
+<%
+  # Support both flash hash and local variables
+  notice_msg = local_assigns[:notice] || flash[:notice]
+  alert_msg = local_assigns[:alert] || flash[:alert]
+%>
+
+<% if notice_msg.present? %>
   <div data-controller="auto-dismiss"
        data-auto-dismiss-delay-value="5000"
        class="mb-4 rounded-md bg-green-50 p-4 shadow-sm animate-slide-down">
@@ -9,7 +15,7 @@
         </svg>
       </div>
       <div class="ml-3">
-        <p class="text-sm font-medium text-green-800"><%= notice %></p>
+        <p class="text-sm font-medium text-green-800"><%= notice_msg %></p>
       </div>
       <div class="ml-auto pl-3">
         <button data-action="click->auto-dismiss#dismiss"

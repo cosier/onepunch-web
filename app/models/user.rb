@@ -16,6 +16,15 @@ class User < ApplicationRecord
   has_one :asana_credential, dependent: :destroy
   has_many :asana_workspaces, dependent: :destroy
 
+  # Avatar associations
+  has_many :avatars, dependent: :destroy
+  has_one :active_avatar, -> { where(active: true) }, class_name: 'Avatar'
+  has_one_attached :avatar_image do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.variant :medium, resize_to_limit: [300, 300]
+    attachable.variant :large, resize_to_limit: [500, 500]
+  end
+
   # Validations
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :first_name, presence: true
@@ -89,6 +98,46 @@ class User < ApplicationRecord
     asana_credential.present? && !asana_credential.expired?
   end
 
+  # Password management methods
+  def has_password_set?
+    password_digest.present? && !password_auto_generated?
+  end
+
+  def oauth_only_user?
+    google_uid.present? && password_auto_generated?
+  end
+
+  def password_never_set?
+    password_auto_generated?
+  end
+
+  def can_login_with_email?
+    password_digest.present? && !password_auto_generated?
+  end
+
+  # Avatar methods
+  def display_avatar_url(variant: nil)
+    # Priority: Active Avatar > Attached Image > OAuth URL > Gravatar
+    if active_avatar&.image&.attached?
+      variant ? active_avatar.image.variant(variant) : active_avatar.image
+    elsif avatar_image.attached?
+      variant ? avatar_image.variant(variant) : avatar_image
+    elsif avatar_url.present?
+      avatar_url
+    else
+      gravatar_url
+    end
+  end
+
+  def gravatar_url(size: 200)
+    email_hash = Digest::MD5.hexdigest(email.downcase.strip)
+    "https://www.gravatar.com/avatar/#{email_hash}?d=mp&s=#{size}"
+  end
+
+  def has_custom_avatar?
+    avatar_image.attached? || active_avatar&.image&.attached?
+  end
+
   # OAuth methods
   def self.from_omniauth(auth)
     user = where(email: auth.info.email).first_or_initialize do |u|
@@ -96,8 +145,14 @@ class User < ApplicationRecord
       u.first_name = auth.info.first_name || auth.info.name.split.first
       u.last_name = auth.info.last_name || auth.info.name.split.last
       u.avatar_url = auth.info.image
-      u.password = SecureRandom.hex(16) if u.new_record?
+      if u.new_record?
+        u.password = SecureRandom.hex(16)
+        u.password_auto_generated = true
+      end
     end
+
+    # Track if avatar URL changed
+    avatar_url_changed = user.avatar_url != auth.info.image
 
     # Update OAuth info if user exists
     if user.persisted?
@@ -108,6 +163,11 @@ class User < ApplicationRecord
       )
     else
       user.save!
+    end
+
+    # Queue avatar download if URL is new or changed
+    if auth.info.image.present? && (user.id_previously_changed? || avatar_url_changed)
+      DownloadAvatarJob.perform_later(user)
     end
 
     user

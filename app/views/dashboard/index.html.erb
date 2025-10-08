@@ -139,79 +139,9 @@
     <!-- Tab Panels -->
     <!-- Weekly View Panel -->
     <div data-tabs-target="panel" class="p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-6">This Week's Activity</h3>
-
-      <!-- Daily Cards for Current Week -->
-      <div class="grid grid-cols-7 gap-3 mb-6">
-        <% @daily_breakdown.each do |day| %>
-          <div class="<%= day[:date] == Date.current ? 'ring-2 ring-indigo-500' : '' %> bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-3 hover:shadow-md transition-all">
-            <div class="text-center">
-              <p class="text-xs font-medium text-gray-600"><%= day[:day_short] %></p>
-              <p class="text-xs text-gray-500"><%= day[:date].strftime('%d') %></p>
-              <p class="text-2xl font-bold text-gray-900 mt-2"><%= day[:hours].round(1) %></p>
-              <p class="text-xs text-gray-500">hours</p>
-              <% if day[:hours] > 0 %>
-                <div class="mt-2">
-                  <div class="text-xs text-green-600"><%= ((day[:billable_hours] / day[:hours]) * 100).round %>% billable</div>
-                  <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-green-400 to-green-500"
-                         style="width: <%= ((day[:billable_hours] / day[:hours]) * 100).round %>%"></div>
-                  </div>
-                </div>
-                <div class="mt-1 text-xs text-gray-500">
-                  <%= day[:projects] %> <%= day[:projects] == 1 ? 'project' : 'projects' %>
-                </div>
-              <% end %>
-              <div class="mt-1 text-xs text-gray-500">
-                <%= day[:entries] %> <%= day[:entries] == 1 ? 'entry' : 'entries' %>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-
-      <!-- Weekly Bar Chart -->
-      <div class="h-64 flex items-end justify-between space-x-2">
-        <% max_hours = @weekly_breakdown.map { |w| w[:hours] }.max.to_f %>
-        <% max_hours = 1 if max_hours == 0 %>
-        <% @weekly_breakdown.each do |week| %>
-          <div class="flex-1 flex flex-col items-center">
-            <div class="w-full flex flex-col items-center space-y-1">
-              <% if week[:billable_hours] > 0 || week[:hours] > 0 %>
-                <div class="relative w-full flex flex-col items-center">
-                  <!-- Total hours bar -->
-                  <div class="w-12 bg-gradient-to-t from-indigo-500 to-indigo-400 rounded-t transition-all hover:from-indigo-600 hover:to-indigo-500"
-                       style="height: <%= [(week[:hours] / max_hours * 200).to_i, 4].max %>px"
-                       title="<%= week[:hours].round(1) %> total hours">
-                    <!-- Billable hours overlay -->
-                    <% if week[:billable_hours] > 0 %>
-                      <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-green-500 to-green-400 rounded-t"
-                           style="height: <%= (week[:billable_hours] / week[:hours] * 100).to_i %>%"
-                           title="<%= week[:billable_hours].round(1) %> billable hours">
-                      </div>
-                    <% end %>
-                  </div>
-                  <span class="text-xs text-gray-600 mt-1 font-semibold"><%= week[:hours].round(1) %></span>
-                </div>
-              <% else %>
-                <div class="w-12 h-1 bg-gray-200 rounded"></div>
-                <span class="text-xs text-gray-400 mt-1">0</span>
-              <% end %>
-            </div>
-            <span class="text-xs text-gray-500 mt-2"><%= week[:week] %></span>
-          </div>
-        <% end %>
-      </div>
-      <div class="flex items-center justify-center mt-6 space-x-6 text-xs">
-        <div class="flex items-center">
-          <div class="w-3 h-3 bg-gradient-to-br from-indigo-500 to-indigo-400 rounded mr-2"></div>
-          <span class="text-gray-600">Total Hours</span>
-        </div>
-        <div class="flex items-center">
-          <div class="w-3 h-3 bg-gradient-to-br from-green-500 to-green-400 rounded mr-2"></div>
-          <span class="text-gray-600">Billable Hours</span>
-        </div>
-      </div>
+      <%= render "shared/weekly_view", 
+          daily_breakdown: @daily_breakdown, 
+          weekly_breakdown: @weekly_breakdown %>
     </div>
 
     <!-- Monthly Calendar Panel -->

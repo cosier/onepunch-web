@@ -1,0 +1,36 @@
+<%
+  # Avatar display component
+  # Usage: <%= render 'shared/avatar', user: user, size: 'medium', class: 'additional-classes' %>
+  # Sizes: small (32px), medium (40px), large (60px), xl (96px), xxl (150px)
+
+  user ||= current_user
+  size ||= 'medium'
+  additional_classes ||= local_assigns[:class] || ''
+
+  size_classes = {
+    'small' => 'h-8 w-8 text-xs',
+    'medium' => 'h-10 w-10 text-sm',
+    'large' => 'h-[60px] w-[60px] text-base',
+    'xl' => 'h-24 w-24 text-xl',
+    'xxl' => 'h-[150px] w-[150px] text-2xl'
+  }
+
+  current_size_class = size_classes[size] || size_classes['medium']
+%>
+
+<% if user.active_avatar&.image&.attached? %>
+  <%= image_tag user.active_avatar.image,
+      class: "#{current_size_class} rounded-full object-cover #{additional_classes}",
+      alt: "#{user.full_name}'s avatar",
+      loading: "lazy" %>
+<% elsif user.avatar_url.present? %>
+  <%= image_tag user.avatar_url,
+      class: "#{current_size_class} rounded-full object-cover #{additional_classes}",
+      alt: "#{user.full_name}'s avatar",
+      loading: "lazy",
+      onerror: "this.onerror=null; this.src='#{user.gravatar_url}'" %>
+<% else %>
+  <div class="<%= current_size_class %> bg-indigo-600 rounded-full flex items-center justify-center text-white font-medium <%= additional_classes %>">
+    <%= user.initials %>
+  </div>
+<% end %>

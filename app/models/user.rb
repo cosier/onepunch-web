@@ -38,6 +38,7 @@ class User < ApplicationRecord
   # Callbacks
   before_save :downcase_email
   after_create :ensure_current_organization
+  before_create :generate_api_token
 
   # Scopes
   scope :active, -> { where(last_sign_in_at: 30.days.ago..) }
@@ -115,6 +116,18 @@ class User < ApplicationRecord
     password_digest.present? && !password_auto_generated?
   end
 
+  # API token methods
+  def regenerate_api_token!
+    update!(api_token: self.class.generate_unique_api_token)
+  end
+
+  def self.generate_unique_api_token
+    loop do
+      token = SecureRandom.urlsafe_base64(32)
+      break token unless User.exists?(api_token: token)
+    end
+  end
+
   # Avatar methods
   def display_avatar_url(variant: nil)
     # Priority: Active Avatar > Attached Image > OAuth URL > Gravatar
@@ -190,5 +203,9 @@ class User < ApplicationRecord
     if personal_org_count > 1
       errors.add(:base, "User can only have one personal organization")
     end
+  end
+
+  def generate_api_token
+    self.api_token ||= self.class.generate_unique_api_token
   end
 end

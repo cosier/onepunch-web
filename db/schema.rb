@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_10_08_111927) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -269,6 +269,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_08_111927) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "api_token"
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.integer "current_organization_id"
@@ -282,6 +283,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_08_111927) do
     t.integer "role", default: 0
     t.string "timezone", default: "UTC"
     t.datetime "updated_at", null: false
+    t.index ["api_token"], name: "index_users_on_api_token", unique: true
     t.index ["current_organization_id"], name: "index_users_on_current_organization_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "google_uid IS NOT NULL"

@@ -17,11 +17,13 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       expose: ['X-CSRF-Token']
   end
   
-  # Specific configuration for Hotwire Native
+  # API access configuration (for external time tracking clients)
   allow do
     origins '*'
     resource '/api/*',
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
-  end if Rails.env.development?
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      expose: ['X-Organization-ID'],
+      credentials: false
+  end
 end

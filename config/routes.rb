@@ -109,4 +109,28 @@ Rails.application.routes.draw do
     resources :users
     resources :organizations
   end
+
+  # API routes
+  namespace :api do
+    namespace :v1 do
+      # User info
+      get 'users/me', to: 'users#me'
+      post 'users/regenerate_token', to: 'users#regenerate_token'
+
+      # Timer control
+      get 'timer/current', to: 'timer#current'
+      post 'timer/start', to: 'timer#start'
+      post 'timer/stop', to: 'timer#stop'
+
+      # Time entries
+      resources :time_entries do
+        member do
+          post :stop
+        end
+      end
+
+      # Projects
+      resources :projects, only: [:index, :show, :create, :update]
+    end
+  end
 end

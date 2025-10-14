@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :memberships, dependent: :destroy
   has_many :organizations, through: :memberships
   has_many :time_entries, dependent: :destroy
+  has_many :api_tokens, dependent: :destroy
   has_many :owned_organizations, -> { where(memberships: { role: 'owner' }) },
            through: :memberships, source: :organization
   belongs_to :current_organization, class_name: 'Organization', optional: true
@@ -38,7 +39,6 @@ class User < ApplicationRecord
   # Callbacks
   before_save :downcase_email
   after_create :ensure_current_organization
-  before_create :generate_api_token
 
   # Scopes
   scope :active, -> { where(last_sign_in_at: 30.days.ago..) }
@@ -117,15 +117,12 @@ class User < ApplicationRecord
   end
 
   # API token methods
-  def regenerate_api_token!
-    update!(api_token: self.class.generate_unique_api_token)
+  def generate_api_token!(name:, expires_at: nil)
+    api_tokens.create!(name: name, expires_at: expires_at)
   end
 
-  def self.generate_unique_api_token
-    loop do
-      token = SecureRandom.urlsafe_base64(32)
-      break token unless User.exists?(api_token: token)
-    end
+  def active_api_tokens
+    api_tokens.active.recent
   end
 
   # Avatar methods
@@ -203,9 +200,5 @@ class User < ApplicationRecord
     if personal_org_count > 1
       errors.add(:base, "User can only have one personal organization")
     end
-  end
-
-  def generate_api_token
-    self.api_token ||= self.class.generate_unique_api_token
   end
 end

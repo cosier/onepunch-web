@@ -98,6 +98,58 @@
     </div>
   </div>
 
+  <!-- API Tokens Section -->
+  <div class="bg-white shadow rounded-lg mt-6" data-controller="api-token-modal">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900">API Tokens</h2>
+          <p class="text-sm text-gray-500 mt-1">Manage API tokens for authenticating with the OnePunch API</p>
+        </div>
+        <button type="button"
+                data-action="click->api-token-modal#openNew"
+                data-turbo-frame="api_token_modal"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Generate New Token
+        </button>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <div id="flash_messages"></div>
+
+      <div id="api_tokens_list" class="space-y-3">
+        <% if current_user.active_api_tokens.any? %>
+          <%= render current_user.active_api_tokens %>
+        <% else %>
+          <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No API tokens</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating a new API token.</p>
+            <div class="mt-6">
+              <button type="button"
+                      data-action="click->api-token-modal#openNew"
+                      class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Generate New Token
+              </button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- API Token Modal -->
+    <%= render "settings/api_tokens/modal" %>
+  </div>
+
   <!-- Password Section -->
   <div class="bg-white shadow rounded-lg mt-6">
     <div class="px-6 py-4 border-b border-gray-200">

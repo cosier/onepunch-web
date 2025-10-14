@@ -1,0 +1,50 @@
+<%# app/views/settings/api_tokens/_form.html.erb %>
+<%= form_with model: api_token, url: settings_api_tokens_path, class: "space-y-4" do |f| %>
+  <!-- Token Name -->
+  <div>
+    <label for="api_token_name" class="block text-sm font-medium text-gray-700">
+      Token Name <span class="text-red-500">*</span>
+    </label>
+    <%= f.text_field :name,
+        placeholder: "e.g., Desktop App, Mobile Client, CI/CD",
+        required: true,
+        autofocus: true,
+        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm #{'border-red-300' if api_token.errors[:name].any?}" %>
+    <% if api_token.errors[:name].any? %>
+      <p class="mt-1 text-sm text-red-600"><%= api_token.errors[:name].first %></p>
+    <% end %>
+    <p class="mt-1 text-xs text-gray-500">
+      Give this token a descriptive name to help you remember what it's for
+    </p>
+  </div>
+
+  <!-- Expiration -->
+  <div>
+    <label for="api_token_expires_at" class="block text-sm font-medium text-gray-700">
+      Expiration (optional)
+    </label>
+    <%= f.select :expires_at,
+        options_for_select([
+          ["Never expires", ""],
+          ["30 days", 30.days.from_now.iso8601],
+          ["90 days", 90.days.from_now.iso8601],
+          ["1 year", 1.year.from_now.iso8601]
+        ]),
+        {},
+        class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+    <p class="mt-1 text-xs text-gray-500">
+      Token will automatically become invalid after this date
+    </p>
+  </div>
+
+  <!-- Submit Button -->
+  <div class="flex justify-end gap-3 pt-4">
+    <button type="button"
+            data-action="click->api-token-modal#close"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      Cancel
+    </button>
+    <%= f.submit "Generate Token",
+        class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+  </div>
+<% end %>

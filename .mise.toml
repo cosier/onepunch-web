@@ -8,8 +8,8 @@ postgres = "15"
 
 [env]
 # Rails environment
-RAILS_ENV = "development"
-NODE_ENV = "development"
+#RAILS_ENV = "development"
+#NODE_ENV = "development"
 
 # Database URL (commented out - using SQLite now)
 # DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/onepunch_development"

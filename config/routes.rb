@@ -46,6 +46,9 @@ Rails.application.routes.draw do
       post :revert
     end
 
+    # API token management
+    resources :api_tokens, only: [:index, :new, :create, :show, :destroy]
+
     namespace :integrations do
       get :asana
       post :sync_asana

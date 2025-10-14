@@ -11,10 +11,25 @@ class Api::BaseController < ActionController::API
 
   def authenticate_api_user!
     authenticate_or_request_with_http_token do |token, options|
-      @current_api_user = User.find_by(api_token: token)
+      # Find API token with associated user
+      api_token = ApiToken.includes(:user).find_by(token: token)
+
+      if api_token
+        # Check if token is active
+        if api_token.active?
+          @current_api_user = api_token.user
+          @current_api_token = api_token
+          # Update last used timestamp
+          api_token.touch_last_used!
+        else
+          @token_status = api_token.revoked? ? "revoked" : "expired"
+        end
+      end
     end
 
-    unless @current_api_user
+    if @token_status
+      render json: { error: "API token has been #{@token_status}" }, status: :unauthorized
+    elsif !@current_api_user
       render json: { error: "Invalid or missing API token" }, status: :unauthorized
     end
   end

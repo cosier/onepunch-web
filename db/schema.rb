@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_14_190050) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,20 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.datetime "last_used_at"
+    t.string "name", null: false
+    t.datetime "revoked_at"
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["token"], name: "index_api_tokens_on_token", unique: true
+    t.index ["user_id", "revoked_at"], name: "index_api_tokens_on_user_id_and_revoked_at"
+    t.index ["user_id"], name: "index_api_tokens_on_user_id"
   end
 
   create_table "asana_credentials", force: :cascade do |t|
@@ -269,7 +283,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "api_token"
     t.string "avatar_url"
     t.datetime "created_at", null: false
     t.integer "current_organization_id"
@@ -283,7 +296,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
     t.integer "role", default: 0
     t.string "timezone", default: "UTC"
     t.datetime "updated_at", null: false
-    t.index ["api_token"], name: "index_users_on_api_token", unique: true
     t.index ["current_organization_id"], name: "index_users_on_current_organization_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "google_uid IS NOT NULL"
@@ -292,6 +304,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_184939) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "api_tokens", "users"
   add_foreign_key "asana_credentials", "users"
   add_foreign_key "asana_projects", "asana_workspaces"
   add_foreign_key "asana_projects", "projects"

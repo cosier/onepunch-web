@@ -13,13 +13,12 @@ class Api::V1::UsersController < Api::BaseController
     })
   end
 
-  # POST /api/v1/users/regenerate_token
+  # POST /api/v1/users/regenerate_token (deprecated - use web UI for token management)
   def regenerate_token
-    current_api_user.regenerate_api_token!
-    render_success({
-      api_token: current_api_user.api_token,
-      message: "API token has been regenerated. Please update your applications."
-    })
+    render json: {
+      error: "This endpoint is deprecated. Please use the web UI at /settings/account to manage API tokens.",
+      url: "#{request.base_url}/settings/account"
+    }, status: :gone
   end
 
   private

@@ -53,7 +53,7 @@
       </div>
 
       <!-- Authorization Form -->
-      <%= form_with url: oauth_authorize_path, method: :post, local: true do |f| %>
+      <%= form_with url: oauth_authorize_path, method: :post, local: true, data: { turbo: false } do |f| %>
         <!-- Preserve OAuth parameters -->
         <%= hidden_field_tag :client_id, params[:client_id] %>
         <%= hidden_field_tag :redirect_uri, params[:redirect_uri] %>

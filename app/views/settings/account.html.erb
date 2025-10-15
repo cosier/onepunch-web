@@ -123,7 +123,7 @@
 
       <div id="api_tokens_list" class="space-y-3">
         <% if current_user.active_api_tokens.any? %>
-          <%= render current_user.active_api_tokens %>
+          <%= render partial: "settings/api_tokens/token", collection: current_user.active_api_tokens, as: :token %>
         <% else %>
           <div class="text-center py-8">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

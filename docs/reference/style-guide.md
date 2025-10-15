@@ -4,13 +4,64 @@ This document defines the design system and style guidelines for maintaining con
 
 ## Layout & Container Standards
 
-### Page Container Width
-All pages use a consistent max-width container for content:
+### Page Container Width Rules
+
+**Use the appropriate max-width based on content type:**
+
+#### Full-Width Pages (`max-w-7xl`)
+Use for dashboard-style pages with multiple columns, cards, or data tables:
 ```erb
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Page content -->
+  <!-- Dashboard, settings index, list pages -->
 </div>
 ```
+**Examples:** Dashboard, Settings pages, Project list, Time entries list
+
+#### Form Pages (`max-w-3xl`)
+Use for pages with primary purpose of form input:
+```erb
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- New/edit forms -->
+</div>
+```
+**Examples:** New project, Edit client, Create invoice
+
+#### Authentication Pages (`max-w-md`)
+Use for login, signup, and password reset pages:
+```erb
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <!-- Auth forms -->
+  </div>
+</div>
+```
+**Examples:** Login, Signup, Password reset
+
+#### Modal Content (`sm:max-w-lg`)
+Modals have fixed width handled by the modal component:
+```erb
+<turbo-frame id="modal_id">
+  <!-- Modal content - no additional container needed -->
+  <!-- Modal panel already has: sm:max-w-lg -->
+</turbo-frame>
+```
+**Examples:** API token creation, Quick actions, Confirmation dialogs
+
+#### Standalone Turbo Frame Pages
+When a Turbo Frame page might be accessed directly (outside modal), wrap in form container:
+```erb
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <turbo-frame id="frame_id">
+    <!-- Frame content -->
+  </turbo-frame>
+</div>
+```
+
+**Rule of thumb:**
+- **7xl** = Data-heavy, multi-column layouts
+- **3xl** = Forms and single-column content
+- **md** = Authentication flows only
+- **Modal** = No wrapper needed (handled by modal component)
 
 ### Card Components
 Standard card structure with shadow and rounded corners:

@@ -9,14 +9,25 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # Allow requests from the web app and mobile apps
     origins ENV.fetch('RAILS_CORS_ORIGINS', 'http://localhost:2030').split(',')
-    
+
     resource '*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
       credentials: true,
       expose: ['X-CSRF-Token']
   end
-  
+
+  # OAuth endpoints for desktop app (Tauri)
+  # NOTE: Temporarily allowing all origins for debugging Cloudflare tunnel issues
+  allow do
+    origins '*'  # TODO: Restrict to specific Tauri origins once working
+
+    resource '/oauth/*',
+      headers: :any,
+      methods: [:get, :post, :options],
+      credentials: false  # Set to false when using wildcard origin
+  end
+
   # API access configuration (for external time tracking clients)
   allow do
     origins '*'

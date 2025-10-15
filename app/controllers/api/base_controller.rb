@@ -11,18 +11,33 @@ class Api::BaseController < ActionController::API
 
   def authenticate_api_user!
     authenticate_or_request_with_http_token do |token, options|
-      # Find API token with associated user
-      api_token = ApiToken.includes(:user).find_by(token: token)
+      # Try OAuth access token first
+      oauth_token = OauthAccessToken.includes(:user).find_by(token: token)
 
-      if api_token
-        # Check if token is active
-        if api_token.active?
-          @current_api_user = api_token.user
-          @current_api_token = api_token
+      if oauth_token
+        # Check if OAuth token is active
+        if oauth_token.active?
+          @current_api_user = oauth_token.user
+          @current_oauth_token = oauth_token
           # Update last used timestamp
-          api_token.touch_last_used!
+          oauth_token.touch_last_used!
         else
-          @token_status = api_token.revoked? ? "revoked" : "expired"
+          @token_status = oauth_token.revoked? ? "revoked" : "expired"
+        end
+      else
+        # Fall back to legacy API token
+        api_token = ApiToken.includes(:user).find_by(token: token)
+
+        if api_token
+          # Check if token is active
+          if api_token.active?
+            @current_api_user = api_token.user
+            @current_api_token = api_token
+            # Update last used timestamp
+            api_token.touch_last_used!
+          else
+            @token_status = api_token.revoked? ? "revoked" : "expired"
+          end
         end
       end
     end

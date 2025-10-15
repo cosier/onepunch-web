@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_10_14_190050) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_15_143332) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -199,6 +199,59 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_190050) do
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
+  create_table "oauth_access_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "last_used_at"
+    t.integer "oauth_application_id", null: false
+    t.string "refresh_token"
+    t.datetime "revoked_at"
+    t.text "scopes"
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["expires_at"], name: "index_oauth_access_tokens_on_expires_at"
+    t.index ["oauth_application_id", "user_id"], name: "index_oauth_access_tokens_on_oauth_application_id_and_user_id"
+    t.index ["oauth_application_id"], name: "index_oauth_access_tokens_on_oauth_application_id"
+    t.index ["refresh_token"], name: "index_oauth_access_tokens_on_refresh_token", unique: true
+    t.index ["token"], name: "index_oauth_access_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_oauth_access_tokens_on_user_id"
+  end
+
+  create_table "oauth_applications", force: :cascade do |t|
+    t.string "client_id", null: false
+    t.string "client_secret", null: false
+    t.boolean "confidential", default: false, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.text "redirect_uris", null: false
+    t.boolean "revoked", default: false, null: false
+    t.text "scopes", default: "api"
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.index ["client_id"], name: "index_oauth_applications_on_client_id", unique: true
+    t.index ["user_id"], name: "index_oauth_applications_on_user_id"
+  end
+
+  create_table "oauth_authorization_codes", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "code_challenge", null: false
+    t.string "code_challenge_method", default: "S256", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.integer "oauth_application_id", null: false
+    t.string "redirect_uri", null: false
+    t.datetime "revoked_at"
+    t.text "scopes"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["code"], name: "index_oauth_authorization_codes_on_code", unique: true
+    t.index ["expires_at"], name: "index_oauth_authorization_codes_on_expires_at"
+    t.index ["oauth_application_id", "user_id"], name: "idx_on_oauth_application_id_user_id_7de793706d"
+    t.index ["oauth_application_id"], name: "index_oauth_authorization_codes_on_oauth_application_id"
+    t.index ["user_id"], name: "index_oauth_authorization_codes_on_user_id"
+  end
+
   create_table "organization_settings", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "currency"
@@ -320,6 +373,11 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_14_190050) do
   add_foreign_key "invoices", "projects"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
+  add_foreign_key "oauth_access_tokens", "oauth_applications"
+  add_foreign_key "oauth_access_tokens", "users"
+  add_foreign_key "oauth_applications", "users"
+  add_foreign_key "oauth_authorization_codes", "oauth_applications"
+  add_foreign_key "oauth_authorization_codes", "users"
   add_foreign_key "organization_settings", "organizations"
   add_foreign_key "projects", "clients"
   add_foreign_key "projects", "organizations"

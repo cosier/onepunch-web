@@ -19,7 +19,14 @@ Rails.application.routes.draw do
   get "/signup", to: "registrations#new"
   post "/signup", to: "registrations#create"
 
-  # OAuth routes
+  # OAuth 2.0 routes for API clients
+  namespace :oauth do
+    get "/authorize", to: "authorizations#new", as: :authorize
+    post "/authorize", to: "authorizations#create"
+    post "/token", to: "tokens#create", as: :token
+  end
+
+  # OAuth routes (for web login)
   # Asana OAuth (must be before generic :provider route)
   get "/auth/asana", to: "asana_oauth#authorize", as: :asana_oauth_authorize
   get "/auth/asana/callback", to: "asana_oauth#callback", as: :asana_oauth_callback

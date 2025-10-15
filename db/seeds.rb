@@ -219,6 +219,21 @@ end
 
 puts "✅ Created pending invitations"
 
+# Create OAuth application for desktop clients
+oauth_app = OauthApplication.find_or_create_by!(name: "OnePunch Desktop") do |app|
+  # For development, we'll use a fixed client_id and secret
+  # In production, these should be randomly generated per installation
+  app.client_id = "onepunch_desktop_client"
+  app.client_secret = "desktop_secret_dev_only"
+  app.redirect_uris = "onepunch://oauth/callback\nhttp://localhost:3000/oauth/callback"
+  app.scopes = "api"
+  app.confidential = false  # Public client (desktop app can't keep secrets)
+end
+
+puts "✅ Created OAuth application: #{oauth_app.name}"
+puts "   Client ID: #{oauth_app.client_id}"
+puts "   Redirect URIs: #{oauth_app.redirect_uri_list.join(', ')}"
+
 # Summary
 total_time = TimeEntry.sum(:duration)
 billable_time = TimeEntry.billable.sum(:duration)
@@ -240,5 +255,11 @@ puts "🚀 Test Accounts:"
 puts "   - demo@onepunch.app / password123 (Owner of Demo Company + Admin of Creative Studio)"
 puts "   - john@example.com / password123 (Admin of Demo Company)"
 puts "   - jane@example.com / password123 (Member of Demo Company)"
+puts ""
+puts "🔐 OAuth Application:"
+puts "   - Name: #{oauth_app.name}"
+puts "   - Client ID: #{oauth_app.client_id}"
+puts "   - Client Secret: #{oauth_app.client_secret}"
+puts "   - Redirect URI: onepunch://oauth/callback"
 puts ""
 puts "📌 Use Cmd+K to quickly switch between organizations!"

@@ -17,6 +17,9 @@ class User < ApplicationRecord
   has_one :asana_credential, dependent: :destroy
   has_many :asana_workspaces, dependent: :destroy
 
+  # Preferences (JSONB storage)
+  store_accessor :preferences, :dismissed_notifications
+
   # Avatar associations
   has_many :avatars, dependent: :destroy
   has_one :active_avatar, -> { where(active: true) }, class_name: 'Avatar'
@@ -146,6 +149,30 @@ class User < ApplicationRecord
 
   def has_custom_avatar?
     avatar_image.attached? || active_avatar&.image&.attached?
+  end
+
+  # Preference methods
+  def dismiss_notification!(notification_type)
+    dismissed = dismissed_notifications || []
+    dismissed << notification_type.to_s unless dismissed.include?(notification_type.to_s)
+    update!(dismissed_notifications: dismissed)
+  end
+
+  def notification_dismissed?(notification_type)
+    dismissed = dismissed_notifications || []
+    dismissed.include?(notification_type.to_s)
+  end
+
+  def asana_setup_dismissed?
+    notification_dismissed?(:asana_setup)
+  end
+
+  def dismiss_asana_setup!
+    dismiss_notification!(:asana_setup)
+  end
+
+  def reset_preferences!
+    update!(preferences: {})
   end
 
   # OAuth methods

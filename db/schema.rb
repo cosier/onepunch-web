@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_10_15_143332) do
+ActiveRecord::Schema[8.1].define(version: 2025_10_15_152600) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -346,6 +346,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_15_143332) do
     t.datetime "last_sign_in_at"
     t.boolean "password_auto_generated", default: false, null: false
     t.string "password_digest"
+    t.json "preferences", default: {}, null: false
     t.integer "role", default: 0
     t.string "timezone", default: "UTC"
     t.datetime "updated_at", null: false
@@ -353,6 +354,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_15_143332) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "google_uid IS NOT NULL"
     t.index ["id", "current_organization_id"], name: "index_users_on_id_and_current_organization_id"
+    t.index ["preferences"], name: "index_users_on_preferences"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

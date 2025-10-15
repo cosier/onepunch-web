@@ -36,6 +36,9 @@ Rails.application.routes.draw do
   # Dashboard
   get "/dashboard", to: "dashboard#index"
 
+  # Notifications
+  post "/notifications/dismiss", to: "notifications#dismiss"
+
   # Settings routes
   get "/settings", to: "settings#index"
   namespace :settings do

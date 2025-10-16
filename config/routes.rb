@@ -82,7 +82,7 @@ Rails.application.routes.draw do
   patch "/switch_organization/:id", to: "organization_switcher#switch", as: :switch_organization
 
   # Onboarding routes
-  resource :onboarding, only: [:new, :create] do
+  resource :onboarding, only: [:new, :create], controller: 'onboarding' do
     member do
       patch :update
       post :complete

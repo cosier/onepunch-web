@@ -10,6 +10,7 @@ This directory contains architectural designs, feature specifications, and long-
 | [Onboarding Wizard](onboarding-wizard.md) | Feature Spec | ✅ Implemented | User onboarding flow specification |
 | [Organization API](organization-api.md) | API Spec | 📋 Partial | REST API for organization management |
 | [Implementation Checklist](implementation-checklist.md) | Checklist | 🔄 Ongoing | Step-by-step implementation guide |
+| [CORS Configuration](cors.md) | Config | 🔴 **BLOCKING** | CORS setup required for Desktop OAuth |
 
 ## Document Types
 

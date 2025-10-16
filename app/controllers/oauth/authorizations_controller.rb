@@ -43,12 +43,19 @@ class Oauth::AuthorizationsController < ApplicationController
         code_challenge_method: params[:code_challenge_method] || "S256"
       )
 
-      # Redirect back to application with code
-      redirect_uri = build_redirect_uri(params[:redirect_uri], {
+      # Build redirect URI for deep link
+      @redirect_uri = build_redirect_uri(params[:redirect_uri], {
         code: auth_code.code,
         state: params[:state]
       })
-      redirect_to redirect_uri, allow_other_host: true
+
+      # Store code and state for display
+      @authorization_code = auth_code.code
+      @state = params[:state]
+      @application_name = @application.name
+
+      # Show success page with code and auto-redirect
+      render :success
     else
       # User denied - redirect with error
       redirect_uri = build_redirect_uri(params[:redirect_uri], {

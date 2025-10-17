@@ -55,10 +55,12 @@ class Oauth::TokensController < ActionController::API
       return
     end
 
-    # Validate redirect_uri matches
-    unless auth_code.redirect_uri == params[:redirect_uri]
-      render_error("Invalid redirect_uri", :bad_request)
-      return
+    # Validate redirect_uri matches (only for desktop flow - CLI flow has nil redirect_uri)
+    if auth_code.redirect_uri.present?
+      unless auth_code.redirect_uri == params[:redirect_uri]
+        render_error("Invalid redirect_uri", :bad_request)
+        return
+      end
     end
 
     # Validate PKCE code_verifier
@@ -137,8 +139,8 @@ class Oauth::TokensController < ActionController::API
   def valid_authorization_code_params?
     params[:code].present? &&
       params[:client_id].present? &&
-      params[:redirect_uri].present? &&
       params[:code_verifier].present?
+    # Note: redirect_uri is optional (CLI flow doesn't use it)
   end
 
   def render_error(message, status)

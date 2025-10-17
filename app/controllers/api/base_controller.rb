@@ -40,12 +40,23 @@ class Api::BaseController < ActionController::API
           end
         end
       end
+
+      # CRITICAL: Always return true to prevent auto-render by authenticate_or_request_with_http_token
+      # We handle all error cases manually below
+      true
     end
+
+    # Now manually handle all error cases with explicit renders
+    # CRITICAL: Only render if authenticate_or_request_with_http_token didn't already render
+    # (it auto-renders when no Authorization header is present)
+    return if performed?
 
     if @token_status
       render json: { error: "API token has been #{@token_status}" }, status: :unauthorized
+      return
     elsif !@current_api_user
       render json: { error: "Invalid or missing API token" }, status: :unauthorized
+      return
     end
   end
 

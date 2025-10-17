@@ -52,11 +52,16 @@
           </button>
         </div>
         <p class="mt-2 text-sm text-gray-500">
-          Copy this code and paste it into the desktop application
+          <% if @redirect_uri.present? %>
+            Copy this code and paste it into the desktop application
+          <% else %>
+            Copy this code and paste it into the CLI terminal
+          <% end %>
         </p>
       </div>
-      <!-- Auto-redirect Status -->
-      <div id="auto-redirect-section" class="mb-6 text-center">
+      <% if @redirect_uri.present? %>
+        <!-- Auto-redirect Status -->
+        <div id="auto-redirect-section" class="mb-6 text-center">
         <div class="inline-flex items-center space-x-2 text-gray-600">
           <svg
             class="animate-spin h-5 w-5 text-indigo-600"
@@ -81,18 +86,21 @@
           <span>Opening desktop app in <span id="countdown">3</span> seconds...</span>
         </div>
       </div>
+      <% end %>
       <!-- Manual Actions -->
       <div class="space-y-3">
-        <button
-          type="button"
-          id="open-app-button"
-          class="
-            w-full bg-indigo-600 text-white py-2 px-4 rounded-lg
-            hover:bg-indigo-700 font-medium
-          "
-        >
-          Open Desktop App Manually
-        </button>
+        <% if @redirect_uri.present? %>
+          <button
+            type="button"
+            id="open-app-button"
+            class="
+              w-full bg-indigo-600 text-white py-2 px-4 rounded-lg
+              hover:bg-indigo-700 font-medium
+            "
+          >
+            Open Desktop App Manually
+          </button>
+        <% end %>
         <button
           type="button"
           onclick="window.close()"
@@ -107,11 +115,19 @@
       <!-- Instructions -->
       <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 class="text-sm font-medium text-blue-900 mb-2">What to do next:</h3>
-        <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-          <li>The desktop app should open automatically</li>
-          <li>If it doesn't, click "Open Desktop App Manually"</li>
-          <li>Or copy the code above and paste it in the app</li>
-        </ol>
+        <% if @redirect_uri.present? %>
+          <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+            <li>The desktop app should open automatically</li>
+            <li>If it doesn't, click "Open Desktop App Manually"</li>
+            <li>Or copy the code above and paste it in the app</li>
+          </ol>
+        <% else %>
+          <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+            <li>Copy the authorization code above</li>
+            <li>Return to your terminal</li>
+            <li>Paste the code when prompted</li>
+          </ol>
+        <% end %>
       </div>
     </div>
   </div>
@@ -136,33 +152,38 @@
     }, 2000);
   });
 
-  // Auto-redirect with countdown
+  // Auto-redirect with countdown (only for desktop app flow)
   const redirectUri = "<%= j @redirect_uri %>";
-  let countdown = 3;
-  const countdownElement = document.getElementById('countdown');
 
-  const countdownInterval = setInterval(() => {
-    countdown--;
-    if (countdownElement) {
-      countdownElement.textContent = countdown;
+  if (redirectUri) {
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdownElement) {
+        countdownElement.textContent = countdown;
+      }
+
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        window.location.href = redirectUri;
+      }
+    }, 1000);
+
+    // Manual open app button
+    const openAppButton = document.getElementById('open-app-button');
+    if (openAppButton) {
+      openAppButton.addEventListener('click', () => {
+        window.location.href = redirectUri;
+      });
     }
 
-    if (countdown <= 0) {
-      clearInterval(countdownInterval);
-      window.location.href = redirectUri;
-    }
-  }, 1000);
-
-  // Manual open app button
-  const openAppButton = document.getElementById('open-app-button');
-  openAppButton.addEventListener('click', () => {
-    window.location.href = redirectUri;
-  });
-
-  // Clean up interval when page is hidden (user navigated away)
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      clearInterval(countdownInterval);
-    }
-  });
+    // Clean up interval when page is hidden (user navigated away)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearInterval(countdownInterval);
+      }
+    });
+  }
 </script>

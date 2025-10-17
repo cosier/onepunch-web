@@ -5,7 +5,7 @@ class OauthAuthorizationCode < ApplicationRecord
 
   # Validations
   validates :code, presence: true, uniqueness: true
-  validates :redirect_uri, presence: true
+  # redirect_uri is optional - supports both redirect flow (desktop) and manual code flow (CLI)
   validates :code_challenge, presence: true
   validates :code_challenge_method, presence: true, inclusion: { in: %w[S256 plain] }
   validates :expires_at, presence: true

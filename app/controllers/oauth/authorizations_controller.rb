@@ -13,10 +13,12 @@ class Oauth::AuthorizationsController < ApplicationController
       return
     end
 
-    # Validate redirect_uri
-    unless @application.valid_redirect_uri?(params[:redirect_uri])
-      render_error("Invalid redirect_uri", :bad_request)
-      return
+    # Validate redirect_uri only if provided
+    if params[:redirect_uri].present?
+      unless @application.valid_redirect_uri?(params[:redirect_uri])
+        render_error("Invalid redirect_uri", :bad_request)
+        return
+      end
     end
 
     # Validate PKCE parameters
@@ -43,34 +45,46 @@ class Oauth::AuthorizationsController < ApplicationController
         code_challenge_method: params[:code_challenge_method] || "S256"
       )
 
-      # Build redirect URI for deep link
-      @redirect_uri = build_redirect_uri(params[:redirect_uri], {
-        code: auth_code.code,
-        state: params[:state]
-      })
-
       # Store code and state for display
       @authorization_code = auth_code.code
       @state = params[:state]
       @application_name = @application.name
 
-      # Show success page with code and auto-redirect
-      render :success
+      if params[:redirect_uri].present?
+        # Standard flow: Build redirect URI and auto-redirect (desktop apps)
+        @redirect_uri = build_redirect_uri(params[:redirect_uri], {
+          code: auth_code.code,
+          state: params[:state]
+        })
+        # Show success page with auto-redirect
+        render :success
+      else
+        # Manual flow: Show code on page for manual copy (CLI apps)
+        @redirect_uri = nil  # No redirect - manual copy only
+        render :success
+      end
     else
-      # User denied - redirect with error
-      redirect_uri = build_redirect_uri(params[:redirect_uri], {
-        error: "access_denied",
-        error_description: "User denied authorization",
-        state: params[:state]
-      })
-      redirect_to redirect_uri, allow_other_host: true
+      # User denied authorization
+      if params[:redirect_uri].present?
+        # Redirect with error
+        redirect_uri = build_redirect_uri(params[:redirect_uri], {
+          error: "access_denied",
+          error_description: "User denied authorization",
+          state: params[:state]
+        })
+        redirect_to redirect_uri, allow_other_host: true
+      else
+        # Show error page (no redirect for CLI apps)
+        render_error("Authorization denied by user", :forbidden)
+      end
     end
   end
 
   private
 
   def validate_oauth_params
-    required_params = [:client_id, :redirect_uri, :response_type, :code_challenge, :code_challenge_method]
+    # redirect_uri is optional - supports both redirect flow (desktop) and manual code flow (CLI)
+    required_params = [:client_id, :response_type, :code_challenge, :code_challenge_method]
     missing_params = required_params.select { |p| params[p].blank? }
 
     if missing_params.any?
@@ -102,6 +116,8 @@ class Oauth::AuthorizationsController < ApplicationController
   end
 
   def build_redirect_uri(base_uri, params)
+    return nil if base_uri.blank?
+
     uri = URI.parse(base_uri)
     query_params = URI.decode_www_form(uri.query || "")
     params.each do |key, value|

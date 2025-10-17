@@ -18,14 +18,19 @@ RSpec.describe OrganizationSetting, type: :model do
   describe 'validation rules' do
     describe 'invoice_counter' do
       it 'must be at least 1' do
-        setting = create(:organization_setting, invoice_counter: 2)
+        # Organization auto-creates setting, so get the created one
+        org = create(:organization)
+        setting = org.organization_setting
+
         setting.invoice_counter = 0
         expect(setting).not_to be_valid
         expect(setting.errors[:invoice_counter]).to be_present
       end
 
       it 'allows values >= 1' do
-        setting = create(:organization_setting, invoice_counter: 2)
+        org = create(:organization)
+        setting = org.organization_setting
+
         setting.invoice_counter = 1
         expect(setting).to be_valid
       end
@@ -33,7 +38,8 @@ RSpec.describe OrganizationSetting, type: :model do
 
     describe 'tax_rate' do
       it 'must be between 0 and 100' do
-        setting = create(:organization_setting)
+        org = create(:organization)
+        setting = org.organization_setting
 
         setting.tax_rate = -1
         expect(setting).not_to be_valid
@@ -52,7 +58,9 @@ RSpec.describe OrganizationSetting, type: :model do
       end
 
       it 'allows nil' do
-        setting = create(:organization_setting)
+        org = create(:organization)
+        setting = org.organization_setting
+
         setting.tax_rate = nil
         expect(setting).to be_valid
       end
@@ -60,7 +68,8 @@ RSpec.describe OrganizationSetting, type: :model do
 
     describe 'default_hourly_rate' do
       it 'must be >= 0' do
-        setting = create(:organization_setting)
+        org = create(:organization)
+        setting = org.organization_setting
 
         setting.default_hourly_rate = -1
         expect(setting).not_to be_valid
@@ -73,7 +82,9 @@ RSpec.describe OrganizationSetting, type: :model do
       end
 
       it 'allows nil' do
-        setting = create(:organization_setting)
+        org = create(:organization)
+        setting = org.organization_setting
+
         setting.default_hourly_rate = nil
         expect(setting).to be_valid
       end
@@ -83,8 +94,9 @@ RSpec.describe OrganizationSetting, type: :model do
   describe 'callbacks' do
     describe 'increment_invoice_counter' do
       it 'increments invoice_counter after creation' do
-        # The factory creates with invoice_counter set, then callback increments it
-        setting = create(:organization_setting)
+        # Organization auto-creates setting with callback incrementing counter
+        org = create(:organization)
+        setting = org.organization_setting
 
         # Just verify it's a positive number (callback incremented it)
         expect(setting.invoice_counter).to be > 0
@@ -93,7 +105,7 @@ RSpec.describe OrganizationSetting, type: :model do
   end
 
   describe 'instance methods' do
-    let(:setting) { create(:organization_setting) }
+    let(:setting) { create(:organization).organization_setting }
 
     describe '#next_invoice_number' do
       it 'formats invoice number with prefix and zero-padded counter' do
@@ -138,7 +150,7 @@ RSpec.describe OrganizationSetting, type: :model do
   end
 
   describe 'business logic' do
-    let(:setting) { create(:organization_setting) }
+    let(:setting) { create(:organization).organization_setting }
 
     it 'provides sensible defaults' do
       expect(setting.currency).to be_present

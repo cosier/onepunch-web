@@ -8,7 +8,7 @@ class Api::V1::UsersController < Api::BaseController
       first_name: current_api_user.first_name,
       last_name: current_api_user.last_name,
       full_name: current_api_user.full_name,
-      current_organization: organization_json(current_organization),
+      current_organization: current_organization ? organization_json(current_organization) : nil,
       organizations: current_api_user.organizations.map { |org| organization_json(org) }
     })
   end

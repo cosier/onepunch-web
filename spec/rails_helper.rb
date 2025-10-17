@@ -2,8 +2,21 @@
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
+
 # Prevent database truncation if the environment is production
 abort("The Rails environment is running in production mode!") if Rails.env.production?
+
+# CRITICAL: Prevent running tests against wrong database
+db_config = ActiveRecord::Base.connection_db_config
+db_name = db_config.database
+unless db_name.include?('test')
+  abort(
+    "❌ SAFETY CHECK FAILED: Database name must contain 'test'\n" \
+    "   Current database: #{db_name}\n" \
+    "   This prevents accidentally wiping development/production data.\n" \
+    "   Please ensure you're running tests in the correct environment."
+  )
+end
 # Uncomment the line below in case you have `--require rails_helper` in the `.rspec` file
 # that will avoid rails generators crashing because migrations haven't been run yet
 # return unless Rails.env.test?

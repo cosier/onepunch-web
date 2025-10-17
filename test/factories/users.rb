@@ -28,5 +28,14 @@ FactoryBot.define do
         user.update(current_organization: org)
       end
     end
+
+    # Alias for common usage
+    trait :with_organization do
+      after(:create) do |user|
+        org = FactoryBot.create(:organization, :personal)
+        FactoryBot.create(:membership, user: user, organization: org, role: :owner)
+        user.update(current_organization: org)
+      end
+    end
   end
 end

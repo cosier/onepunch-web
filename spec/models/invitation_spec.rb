@@ -274,6 +274,7 @@ RSpec.describe Invitation, type: :model do
       it 'generates URL with token' do
         invitation = create(:invitation)
 
+        allow(ENV).to receive(:[]).with('APP_HOST').and_return('localhost:3000')
         url = invitation.invitation_url
 
         expect(url).to include(invitation.token)

@@ -253,19 +253,23 @@ ActiveRecord::Schema[8.1].define(version: 2025_10_17_115224) do
   end
 
   create_table "organization_settings", force: :cascade do |t|
+    t.text "company_address"
+    t.string "company_name"
     t.datetime "created_at", null: false
-    t.string "currency"
-    t.string "date_format"
-    t.decimal "default_hourly_rate"
-    t.integer "invoice_counter"
-    t.string "invoice_prefix"
-    t.boolean "notification_email"
-    t.boolean "notification_slack"
+    t.string "currency", default: "USD"
+    t.string "date_format", default: "%Y-%m-%d"
+    t.decimal "default_hourly_rate", precision: 10, scale: 2
+    t.integer "invoice_counter", default: 1
+    t.string "invoice_prefix", default: "INV"
+    t.boolean "notification_email", default: true
+    t.boolean "notification_slack", default: false
     t.integer "organization_id", null: false
-    t.decimal "tax_rate"
-    t.string "time_zone"
+    t.string "slack_webhook_url"
+    t.string "tax_id"
+    t.decimal "tax_rate", precision: 5, scale: 2, default: "0.0"
+    t.string "time_zone", default: "UTC"
     t.datetime "updated_at", null: false
-    t.index ["organization_id"], name: "index_organization_settings_on_organization_id"
+    t.index ["organization_id"], name: "index_organization_settings_on_organization_id", unique: true
   end
 
   create_table "organizations", force: :cascade do |t|

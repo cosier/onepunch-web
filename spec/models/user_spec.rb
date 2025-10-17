@@ -332,6 +332,11 @@ RSpec.describe User, type: :model do
       )
     end
 
+    before do
+      # Stub the async job to avoid needing queue database in tests
+      allow(DownloadAvatarJob).to receive(:perform_later)
+    end
+
     context 'when user does not exist' do
       it 'creates new user with OAuth data' do
         expect {

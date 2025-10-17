@@ -1,0 +1,101 @@
+<div data-controller="organization-switcher" class="relative">
+  <button data-action="click->organization-switcher#toggle"
+          class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+    <% if current_organization&.logo_url.present? %>
+      <%= image_tag current_organization.logo_url, class: "w-6 h-6 rounded" %>
+    <% elsif current_organization %>
+      <div class="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center">
+        <span class="text-white text-xs font-bold">
+          <%= current_organization.name[0].upcase %>
+        </span>
+      </div>
+    <% else %>
+      <div class="w-6 h-6 bg-gray-400 rounded flex items-center justify-center">
+        <span class="text-white text-xs font-bold">?</span>
+      </div>
+    <% end %>
+
+    <span class="font-medium text-gray-900">
+      <%= current_organization&.display_name || "No Organization" %>
+    </span>
+
+    <%= icon "chevron-down", class: "w-4 h-4 text-gray-400" %>
+  </button>
+
+  <div data-organization-switcher-target="dropdown"
+       class="hidden absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+
+    <% if current_user&.organizations&.any? %>
+      <!-- Search -->
+      <div class="px-3 pb-2">
+        <input type="text"
+               data-organization-switcher-target="search"
+               data-action="input->organization-switcher#filter"
+               placeholder="Search organizations..."
+               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+
+      <!-- Organizations List -->
+      <div class="max-h-64 overflow-y-auto">
+        <% current_user.organizations.each do |org| %>
+          <%= button_to switch_organization_path(org),
+              method: :patch,
+              data: {
+                turbo: true,
+                organization_switcher_target: "item",
+                organization_name: org.name.downcase
+              },
+              class: "w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between group" do %>
+
+            <div class="flex items-center space-x-3">
+              <% if org.logo_url.present? %>
+                <%= image_tag org.logo_url, class: "w-8 h-8 rounded" %>
+              <% else %>
+                <div class="w-8 h-8 bg-gray-300 rounded flex items-center justify-center">
+                  <span class="text-gray-600 text-sm font-bold">
+                    <%= org.name[0].upcase %>
+                  </span>
+                </div>
+              <% end %>
+
+              <div>
+                <div class="font-medium text-gray-900">
+                  <%= org.display_name %>
+                </div>
+                <div class="text-xs text-gray-500">
+                  <%= pluralize(org.member_count, 'member') %>
+                  <% if org.trial? %>
+                    <span class="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded">Trial</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+
+            <% if org == current_organization %>
+              <%= icon "check", class: "w-5 h-5 text-indigo-600" %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Divider -->
+    <div class="border-t border-gray-200 mt-2 pt-2">
+      <!-- Create New Organization -->
+      <%= link_to new_organization_path,
+          class: "w-full px-3 py-2 hover:bg-gray-50 flex items-center space-x-2 text-gray-700" do %>
+        <%= icon "plus", class: "w-5 h-5" %>
+        <span class="text-sm font-medium">Create New Organization</span>
+      <% end %>
+
+      <!-- Organization Settings -->
+      <% if current_organization && current_user.admin_of?(current_organization) %>
+        <%= link_to organization_path(current_organization),
+            class: "w-full px-3 py-2 hover:bg-gray-50 flex items-center space-x-2 text-gray-700" do %>
+          <%= icon "settings", class: "w-5 h-5" %>
+          <span class="text-sm font-medium">Organization Settings</span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

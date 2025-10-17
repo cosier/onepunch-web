@@ -1,0 +1,30 @@
+<%# app/views/settings/api_tokens/new.html.erb %>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <turbo-frame id="api_token_modal">
+    <div id="api_token_modal_content">
+      <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- Header -->
+        <div class="px-8 py-8 border-b border-gray-200">
+          <div class="flex items-start space-x-4">
+            <div class="flex-shrink-0">
+              <div class="h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
+                <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h1 class="text-2xl font-bold text-gray-900">Generate New API Token</h1>
+              <p class="text-sm text-gray-600 mt-1">Create a new token for authenticating with the OnePunch API.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form body -->
+        <div class="px-8 py-8">
+          <%= render "settings/api_tokens/form", api_token: @api_token %>
+        </div>
+      </div>
+    </div>
+  </turbo-frame>
+</div>

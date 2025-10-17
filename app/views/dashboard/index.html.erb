@@ -1,0 +1,333 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header with Quick Actions -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p class="text-gray-600 mt-1">Welcome back, <%= current_user.email.split('@').first.capitalize %></p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <!-- Quick Timer Start for Projects -->
+        <div class="flex items-center space-x-2">
+          <% @projects.first(3).each do |project| %>
+            <%= render "shared/quick_timer_chip", project: project %>
+          <% end %>
+        </div>
+        <%= link_to "New Project", new_project_path,
+            class: "inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-medium rounded-lg shadow-md hover:from-indigo-600 hover:to-indigo-700 transition-all hover:shadow-lg" %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards with Gradients -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Today's Hours -->
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-purple-100">Today</h3>
+        <%= icon "clock", class: "h-5 w-5 text-purple-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= format_duration(@today_duration) %></p>
+      <% if @today_projects.any? %>
+        <div class="mt-3 pt-3 border-t border-purple-400">
+          <p class="text-xs text-purple-200"><%= @today_projects.count %> projects</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- This Week -->
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-blue-100">This Week</h3>
+        <%= icon "calendar", class: "h-5 w-5 text-blue-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= format_duration(@week_duration) %></p>
+      <div class="mt-3 pt-3 border-t border-blue-400">
+        <p class="text-xs text-blue-200">
+          <%= @daily_breakdown.count { |d| d[:hours] > 0 } %> days active
+        </p>
+      </div>
+    </div>
+
+    <!-- This Month -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-green-100">This Month</h3>
+        <%= icon "building", class: "h-5 w-5 text-green-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@current_month_hours, precision: 1) %>h</p>
+      <% if @current_month_billable > 0 %>
+        <div class="mt-3 pt-3 border-t border-green-400">
+          <p class="text-xs text-green-200">
+            <%= number_with_precision(@current_month_billable, precision: 1) %>h billable
+          </p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Active Timer or Projects Count -->
+    <% if @current_timer %>
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white animate-pulse">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-orange-100">Timer Running</h3>
+          <%= icon "clock", class: "h-5 w-5 text-orange-200 animate-spin" %>
+        </div>
+        <p class="text-lg font-bold truncate"><%= @current_timer.project.name %></p>
+        <div class="mt-3 pt-3 border-t border-orange-400">
+          <p class="text-xs text-orange-200">
+            Started <%= time_ago_in_words(@current_timer.started_at) %> ago
+          </p>
+        </div>
+      </div>
+    <% else %>
+      <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-medium text-indigo-100">Active Projects</h3>
+          <%= icon "briefcase", class: "h-5 w-5 text-indigo-200" %>
+        </div>
+        <p class="text-3xl font-bold"><%= @projects.count %></p>
+        <div class="mt-3 pt-3 border-t border-indigo-400">
+          <p class="text-xs text-indigo-200">
+            <%= link_to "View all →", projects_path, class: "hover:text-white transition-colors" %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Tabbed Analytics View -->
+  <div class="bg-white rounded-xl shadow-lg mb-8" data-controller="tabs">
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Weekly View
+        </button>
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Monthly Calendar
+        </button>
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Year Overview
+        </button>
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Today's Breakdown
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Panels -->
+    <!-- Weekly View Panel -->
+    <div data-tabs-target="panel" class="p-6">
+      <%= render "shared/weekly_view", 
+          daily_breakdown: @daily_breakdown, 
+          weekly_breakdown: @weekly_breakdown %>
+    </div>
+
+    <!-- Monthly Calendar Panel -->
+    <div data-tabs-target="panel" class="p-6 hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-900"><%= @calendar_month.strftime('%B %Y') %></h3>
+        <div class="flex space-x-2">
+          <%= link_to dashboard_path(month: (@calendar_month - 1.month).to_s),
+              class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
+            <%= icon "chevron-left", class: "w-5 h-5" %>
+          <% end %>
+          <%= link_to dashboard_path(month: (@calendar_month + 1.month).to_s),
+              class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
+            <%= icon "chevron-right", class: "w-5 h-5" %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="grid grid-cols-7 gap-1">
+        <!-- Day Headers -->
+        <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+          <div class="text-center text-xs font-semibold text-gray-700 p-2">
+            <%= day %>
+          </div>
+        <% end %>
+
+        <!-- Calendar Days -->
+        <% (@calendar_start..@calendar_end).each do |date| %>
+          <% hours = @days_with_entries[date] || 0 %>
+          <% is_current_month = date.month == @calendar_month.month %>
+          <% is_today = date == Date.current %>
+
+          <div class="<%= is_current_month ? 'bg-white' : 'bg-gray-50' %> <%= is_today ? 'ring-2 ring-indigo-500' : 'border border-gray-200' %> rounded-lg p-2 min-h-[80px] hover:shadow-md transition-all">
+            <div class="text-xs font-medium <%= is_current_month ? 'text-gray-900' : 'text-gray-400' %>">
+              <%= date.day %>
+            </div>
+            <% if hours > 0 %>
+              <div class="mt-1">
+                <div class="text-lg font-bold <%= is_current_month ? 'text-indigo-600' : 'text-gray-400' %>">
+                  <%= hours.round(1) %>
+                </div>
+                <div class="text-xs <%= is_current_month ? 'text-gray-600' : 'text-gray-400' %>">hours</div>
+                <!-- Visual indicator bar -->
+                <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-500"
+                       style="width: <%= [hours * 12.5, 100].min %>%"></div>
+                </div>
+              </div>
+            <% elsif is_current_month %>
+              <div class="mt-1 text-xs text-gray-400 italic">No time</div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Monthly Summary -->
+      <div class="mt-6 grid grid-cols-3 gap-4">
+        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-indigo-700">Total Days Worked</p>
+          <p class="text-2xl font-bold text-indigo-900"><%= @days_with_entries.select { |d, h| d.month == @calendar_month.month && h > 0 }.count %></p>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-green-700">Total Hours</p>
+          <p class="text-2xl font-bold text-green-900"><%= @days_with_entries.select { |d, h| d.month == @calendar_month.month }.values.sum.round(1) %></p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-purple-700">Average per Day</p>
+          <% days_worked = @days_with_entries.select { |d, h| d.month == @calendar_month.month && h > 0 }.count %>
+          <p class="text-2xl font-bold text-purple-900">
+            <%= days_worked > 0 ? (@days_with_entries.select { |d, h| d.month == @calendar_month.month }.values.sum / days_worked).round(1) : 0 %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Year Overview Panel -->
+    <div data-tabs-target="panel" class="p-6 hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">Year Overview - <%= Date.current.year %></h3>
+      <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+        <% @monthly_breakdown.each do |month| %>
+          <div class="relative group">
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 hover:shadow-md transition-all hover:scale-105">
+              <h4 class="text-xs font-medium text-gray-600 mb-2"><%= month[:month] %></h4>
+              <p class="text-lg font-bold text-gray-900"><%= month[:hours].round(1) %></p>
+              <p class="text-xs text-gray-500">hours</p>
+              <% if month[:hours] > 0 %>
+                <div class="mt-2 pt-2 border-t border-gray-200">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-green-600"><%= ((month[:billable_hours] / month[:hours]) * 100).round %>%</span>
+                    <span class="text-xs text-gray-500">billable</span>
+                  </div>
+                  <!-- Visual indicator bar -->
+                  <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-green-400 to-green-500"
+                         style="width: <%= ((month[:billable_hours] / month[:hours]) * 100).round %>%"></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Today's Breakdown Panel -->
+    <div data-tabs-target="panel" class="p-6 hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">Today's Activity Breakdown</h3>
+
+      <% if @today_projects.any? %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% @today_projects.each do |project, hours| %>
+            <div class="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center space-x-2">
+                  <span class="inline-block w-3 h-3 rounded-full"
+                        style="background-color: <%= project.color || '#6B7280' %>"></span>
+                  <h4 class="text-sm font-semibold text-gray-900 truncate"><%= project.name %></h4>
+                </div>
+                <%= render "shared/timer_button",
+                    project: project,
+                    icon_only: true,
+                    size: "small" %>
+              </div>
+              <p class="text-2xl font-bold text-gray-900"><%= hours.round(2) %></p>
+              <p class="text-xs text-gray-500">hours today</p>
+              <div class="mt-3 pt-3 border-t border-gray-200">
+                <% day_percentage = @today_duration > 0 ? (hours / @today_duration.to_f * 3600 * 100).round : 0 %>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-600"><%= day_percentage %>% of day</span>
+                  <% if project.hourly_rate.present? %>
+                    <span class="text-green-600 font-medium">$<%= (hours * project.hourly_rate).round(2) %></span>
+                  <% end %>
+                </div>
+                <div class="mt-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-500"
+                       style="width: <%= day_percentage %>%"></div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No activity today</h3>
+          <p class="mt-1 text-sm text-gray-500">Start tracking time to see your daily breakdown.</p>
+          <% if @projects.any? %>
+            <div class="mt-6 flex justify-center space-x-2">
+              <% @projects.first(3).each do |project| %>
+                <%= render "shared/timer_button",
+                    project: project,
+                    button_text: "Start #{project.name}",
+                    size: "small" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Time Entries with Modal -->
+  <div data-controller="modal">
+    <!-- Time Entries Section -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
+          <%= link_to "View all", time_entries_path, class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+        </div>
+      </div>
+
+      <% if @recent_entries.any? %>
+        <div id="time-entries-list" class="divide-y divide-gray-200">
+          <% @recent_entries.each do |entry| %>
+            <%= render "time_entries/entry_card", entry: entry %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="px-6 py-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No time entries yet</h3>
+          <p class="mt-1 text-sm text-gray-500">Start tracking your time to see entries here.</p>
+          <% if @projects.empty? %>
+            <div class="mt-6">
+              <%= link_to "Create a project", new_project_path,
+                  class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Include the modal inside the controller scope -->
+    <%= render "shared/modal" %>
+  </div>
+</div>

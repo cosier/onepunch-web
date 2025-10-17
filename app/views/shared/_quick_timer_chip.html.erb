@@ -1,0 +1,64 @@
+<%
+  project ||= @project
+  show_color ||= true
+  max_length ||= 15
+
+  running_entry = current_user.time_entries.running.where(project: project).first if project
+  is_running = running_entry.present?
+
+  truncated_name = project.name.length > max_length ? "#{project.name[0...max_length]}..." : project.name
+
+  if is_running
+    button_class = "inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium rounded-md shadow-md hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-lg animate-pulse"
+    action = :stop
+  else
+    button_class = "inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-medium rounded-md shadow-md hover:from-green-600 hover:to-green-700 transition-all hover:shadow-lg"
+    action = :start
+  end
+
+  description = nil
+  if action == :start
+    last_entry = project.time_entries.where(user: current_user).order(started_at: :desc).first
+    description = last_entry&.description || "Working on #{project.name}"
+  end
+%>
+
+<div id="quick_timer_chip_<%= project.id %>">
+  <% if is_running %>
+    <%= button_to stop_time_entry_path(running_entry),
+        method: :post,
+        form: {
+          data: { turbo: true }
+        },
+        class: button_class,
+        title: "Stop timer for #{project.name}" do %>
+      <% if show_color && project.color.present? %>
+        <span class="w-2 h-2 rounded-full mr-1.5" style="background-color: <%= project.color %>"></span>
+      <% end %>
+      <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
+      </svg>
+      <span><%= truncated_name %></span>
+    <% end %>
+  <% else %>
+    <%= button_to timer_start_path,
+        method: :post,
+        params: {
+          project_id: project.id,
+          description: description
+        },
+        form: {
+          data: { turbo: true }
+        },
+        class: button_class,
+        title: "Start timer for #{project.name}" do %>
+      <% if show_color && project.color.present? %>
+        <span class="w-2 h-2 rounded-full mr-1.5" style="background-color: <%= project.color %>"></span>
+      <% end %>
+      <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+      </svg>
+      <span><%= truncated_name %></span>
+    <% end %>
+  <% end %>
+</div>

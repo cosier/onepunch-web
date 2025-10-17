@@ -1,0 +1,459 @@
+# Map configuration for WebSocket
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  '' close;
+}
+
+# Main log format
+log_format custom '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+# DNS resolver for dynamic upstream resolution
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+# Frontend (Vite) - Keep upstream for load balancing if needed
+# Now using dynamic resolution instead
+# upstream frontend_server {
+#   server frontend:{{frontendPort}} max_fails=1 fail_timeout=10s;
+#   keepalive 32;
+# }
+
+# Admin Dashboard - Keep upstream for load balancing if needed
+# Commented out as admin service may not always be running
+# upstream admin_server {
+#   server admin:3000 max_fails=1 fail_timeout=10s;
+#   keepalive 32;
+# }
+
+# Rails API - Keep upstream but with better failure handling  
+# Note: This requires the web service to be running
+# upstream api_server {
+#   server web:{{apiPort}} max_fails=1 fail_timeout=10s;
+#   keepalive 32;
+# }
+
+# Realtime service for SSE/WebSocket
+# Now using dynamic resolution instead
+# upstream realtime_server {
+#   server realtime:3001 max_fails=1 fail_timeout=10s;
+#   keepalive 32;
+# }
+
+# Main server block for HTTPS
+server {
+  listen 443 ssl;
+  server_name {{appDomain}} local.{{appDomain}};
+
+  ssl_certificate /etc/nginx/ssl/{{appDomain}}/fullchain.pem;
+  ssl_certificate_key /etc/nginx/ssl/{{appDomain}}/privkey.pem;
+  
+  # SSL settings
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:10m;
+
+  # Logging
+  access_log /var/log/nginx/{{appDomain}}.access.log custom;
+  error_log /var/log/nginx/{{appDomain}}.error.log;
+
+  # Upload limits
+  client_max_body_size 100M;
+  client_body_timeout 60s;
+  client_header_timeout 60s;
+  keepalive_timeout 300s;
+  send_timeout 300s;
+
+  # Security headers
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options nosniff;
+  add_header X-Frame-Options SAMEORIGIN;
+  add_header X-XSS-Protection "1; mode=block";
+  
+  # Allow credentials in CORS for authentication
+  add_header Access-Control-Allow-Credentials 'true' always;
+  add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS' always;
+  add_header Access-Control-Allow-Headers 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization' always;
+
+  # Admin API routes (must come before general admin routes)
+  location ~ ^/admin/v1 {
+    # Dynamic upstream resolution - route to API service
+    set $api_backend "web:{{apiPort}}";
+    proxy_pass http://$api_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Ssl on;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port 443;
+    
+    # Cookie handling for authentication
+    proxy_set_header Cookie $http_cookie;
+    proxy_pass_request_headers on;
+    
+    # Pass authentication cookies back to the client
+    proxy_cookie_path / /;
+    proxy_cookie_domain $api_backend $host;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 300s;
+  }
+
+  # Admin Dashboard routes
+  location ~ ^/admin {
+    # Dynamic upstream resolution
+    set $admin_backend "admin:3000";
+    proxy_pass http://$admin_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # WebSocket support for HMR (if in development mode)
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    
+    # Vite development optimizations
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_http_version 1.1;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 86400;
+  }
+
+  # Vite HMR websocket connection
+  location /@vite/client {
+    set $frontend_backend "frontend:{{frontendPort}}";
+    proxy_pass http://$frontend_backend;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 86400;
+  }
+
+  # Handle Vite's HMR WebSocket
+  location /__vite_hmr {
+    set $frontend_backend "frontend:{{frontendPort}}";
+    proxy_pass http://$frontend_backend;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 86400;
+  }
+
+  # Handle Vite development mode source files and assets
+  location ~ ^/(src/|@fs/|node_modules/|@vite/|@id/) {
+    set $frontend_backend "frontend:{{frontendPort}}";
+    proxy_pass http://$frontend_backend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Critical: Don't modify content-type for Vite
+    proxy_pass_request_headers on;
+    proxy_set_header Accept $http_accept;
+    
+    # Don't buffer responses for development
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_http_version 1.1;
+    
+    # Ensure long timeout for slow TypeScript compilation
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+    proxy_connect_timeout 10s;
+  }
+
+  # Handle TypeScript and JavaScript files with query parameters (Vite transform URLs)
+  location ~ \.(ts|tsx|js|jsx|mjs|vue|svelte)(\?.*)?$ {
+    set $frontend_backend "frontend:{{frontendPort}}";
+    proxy_pass http://$frontend_backend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Let Vite handle the content-type
+    proxy_pass_request_headers on;
+    proxy_set_header Accept $http_accept;
+    
+    # Don't cache or buffer transformed modules
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_http_version 1.1;
+    
+    # Long timeout for TypeScript compilation
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+    proxy_connect_timeout 10s;
+  }
+
+  # Static files for /api/images
+  location ^~ /api/images/ {
+    alias /rails_public/images/;
+    expires 30d;
+    add_header Cache-Control "public, no-transform";
+  }
+
+  # Static files for /images
+  location ^~ /images/ {
+    alias /frontend_public/images/;
+    expires 30d;
+    add_header Cache-Control "public, no-transform";
+  }
+
+  # Realtime SSE endpoints
+  location /realtime/sse/ {
+    # Dynamic upstream resolution
+    set $realtime_backend "realtime:3001";
+    proxy_pass http://$realtime_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # SSE specific headers
+    proxy_set_header Cache-Control "no-cache";
+    proxy_set_header Connection "";
+    proxy_http_version 1.1;
+    
+    # Critical SSE settings - disable ALL buffering
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_request_buffering off;
+    proxy_max_temp_file_size 0;
+    
+    # SSE specific nginx settings
+    add_header X-Accel-Buffering no;
+    
+    # Long timeout for SSE connections
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 86400s;
+    proxy_read_timeout 86400s;
+    
+    # Enable chunked transfer encoding
+    chunked_transfer_encoding on;
+    
+    # Force immediate delivery
+    tcp_nodelay on;
+    tcp_nopush off;
+  }
+
+  # Custom Swagger UI (no assets needed - uses CDN)
+  location /gp {
+    # Dynamic upstream resolution
+    set $api_backend "web:{{apiPort}}";
+    proxy_pass http://$api_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Ssl on;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port 443;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 300s;
+  }
+
+
+  # API routes - Use dynamic resolution with variable
+  # This handles all /api routes including /api/admin/v1
+  location /api {
+    # Dynamic upstream resolution
+    set $api_backend "web:{{apiPort}}";
+    proxy_pass http://$api_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Ssl on;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port 443;
+    
+    # Cookie handling for authentication
+    proxy_set_header Cookie $http_cookie;
+    proxy_pass_request_headers on;
+    
+    # Pass authentication cookies back to the client
+    proxy_cookie_path / /;
+    proxy_cookie_domain $api_backend $host;
+    
+    # WebSocket support if needed by the API
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 300s;
+  }
+  # Grape API and Swagger UI routes
+  location /api/gp {
+    # Dynamic upstream resolution
+    set $api_backend "web:{{apiPort}}";
+    proxy_pass http://$api_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Ssl on;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port 443;
+    
+    # Cookie handling for authentication
+    proxy_set_header Cookie $http_cookie;
+    proxy_pass_request_headers on;
+    
+    # Pass authentication cookies back to the client
+    proxy_cookie_path / /;
+    proxy_cookie_domain $api_backend $host;
+    
+    # WebSocket support if needed by the API
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 300s;
+  }
+
+  # Frontend routes - Use dynamic resolution with variable  
+  location / {
+    # Dynamic upstream resolution
+    set $frontend_backend "frontend:{{frontendPort}}";
+    proxy_pass http://$frontend_backend;
+    
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # WebSocket support for HMR
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    
+    # Vite development optimizations
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_http_version 1.1;
+    
+    # Connection pooling and error handling
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 86400;
+  }
+}
+
+# HTTP server block - same content as HTTPS for local development
+server {
+  listen 80;
+  server_name {{appDomain}} local.{{appDomain}};
+
+  # Logging
+  access_log /var/log/nginx/{{appDomain}}.access.log custom;
+  error_log /var/log/nginx/{{appDomain}}.error.log;
+
+  # Upload limits
+  client_max_body_size 100M;
+  client_body_timeout 60s;
+  client_header_timeout 60s;
+  keepalive_timeout 300s;
+  send_timeout 300s;
+
+  # Security headers (without HSTS for HTTP)
+  add_header X-Content-Type-Options nosniff;
+  add_header X-Frame-Options SAMEORIGIN;
+  add_header X-XSS-Protection "1; mode=block";
+
+  # Allow credentials in CORS for authentication
+  add_header Access-Control-Allow-Credentials 'true' always;
+  add_header Access-Control-Allow-Methods 'GET, POST, PUT, DELETE, OPTIONS' always;
+  add_header Access-Control-Allow-Headers 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization' always;
+
+  # API routes
+  location /api {
+    set $api_backend "web:3000";
+    proxy_pass http://$api_backend;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto http;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port 80;
+
+    proxy_set_header Cookie $http_cookie;
+    proxy_pass_request_headers on;
+    proxy_cookie_path / /;
+    proxy_cookie_domain $api_backend $host;
+
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 300s;
+  }
+
+  # Frontend routes
+  location / {
+    set $frontend_backend "frontend:3000";
+    proxy_pass http://$frontend_backend;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto http;
+
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_http_version 1.1;
+
+    proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
+    proxy_next_upstream_tries 2;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 30s;
+    proxy_read_timeout 86400;
+  }
+} 

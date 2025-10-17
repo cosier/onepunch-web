@@ -1,0 +1,2 @@
+#!/bin/bash
+bundle exec kamal app exec --primary --version=$KAMAL_VERSION "bin/rails db:prepare"

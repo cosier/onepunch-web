@@ -1,0 +1,8 @@
+tunnel: onepunch-dev
+credentials-file: .cloudflared/credentials.json
+
+ingress:
+  - hostname: dev.onepunch.work
+    service: http://localhost:2030
+  - service: http_status:404
+

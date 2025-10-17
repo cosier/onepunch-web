@@ -1,0 +1,67 @@
+# Name of your application
+service: onepunch
+
+# Name of the container image
+image: hilarioinc/onepunch
+
+# Deploy to these servers (using Tailscale network)
+servers:
+  web:
+    hosts:
+      - 100.64.0.48
+
+# Credentials for GitHub Container Registry
+registry:
+  server: ghcr.io
+  username: hilarioinc
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Configure builder
+builder:
+  arch: amd64
+  cache:
+    type: registry
+    options: mode=max,image-manifest=true,oci-mediatypes=true
+
+# Environment variables
+env:
+  clear:
+    RAILS_ENV: production
+    RAILS_LOG_TO_STDOUT: "true"
+    RAILS_SERVE_STATIC_FILES: "true"
+  secret:
+    - RAILS_MASTER_KEY
+    # Note: All other secrets (SMTP, Google, Stripe) are now in encrypted credentials
+    # Only RAILS_MASTER_KEY is needed to decrypt config/credentials/production.yml.enc
+
+# Use kamal-proxy v2
+proxy:
+  ssl: false
+  host: onepunch.work
+  forward_headers: true
+
+# SSH configuration
+ssh:
+  user: ubuntu
+
+# Persistent storage for SQLite database and uploads
+volumes:
+  - "onepunch_storage:/rails/storage"
+
+# Asset bridging for zero-downtime deploys
+asset_path: /rails/public/assets
+
+# Logging
+logging:
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Aliases for common commands
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbconsole: app exec --interactive --reuse "bin/rails dbconsole"

@@ -1,0 +1,33 @@
+<%
+  user ||= current_user
+%>
+
+<div id="avatar-preview" class="flex items-center space-x-4">
+  <div class="relative">
+    <%= render 'shared/avatar', user: user, size: 'xl' %>
+    <% if user.active_avatar && user.active_avatar.image.attached? %>
+      <div class="absolute bottom-0 right-0 bg-green-100 rounded-full p-1">
+        <svg class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex-1">
+    <p class="text-sm font-medium text-gray-900"><%= user.full_name %></p>
+    <p class="text-sm text-gray-500"><%= user.email %></p>
+    <% if user.active_avatar %>
+      <p class="text-xs text-gray-400 mt-1">
+        <%= user.active_avatar.source.humanize %> avatar
+        <% if user.active_avatar.processed_at %>
+          • Updated <%= time_ago_in_words(user.active_avatar.processed_at) %> ago
+        <% end %>
+      </p>
+    <% elsif user.avatar_url.present? %>
+      <p class="text-xs text-gray-400 mt-1">Google profile picture</p>
+    <% else %>
+      <p class="text-xs text-gray-400 mt-1">Default avatar</p>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,149 @@
+Rails.application.routes.draw do
+  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
+  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  get "up" => "rails/health#show", as: :rails_health_check
+
+  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
+  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+
+  # Root route
+  root "dashboard#index"
+
+  # Authentication routes
+  get "/login", to: "sessions#new"
+  post "/login", to: "sessions#create"
+  delete "/logout", to: "sessions#destroy"
+  get "/signup", to: "registrations#new"
+  post "/signup", to: "registrations#create"
+
+  # OAuth 2.0 routes for API clients
+  namespace :oauth do
+    get "/authorize", to: "authorizations#new", as: :authorize
+    post "/authorize", to: "authorizations#create"
+    post "/token", to: "tokens#create", as: :token
+  end
+
+  # OAuth routes (for web login)
+  # Asana OAuth (must be before generic :provider route)
+  get "/auth/asana", to: "asana_oauth#authorize", as: :asana_oauth_authorize
+  get "/auth/asana/callback", to: "asana_oauth#callback", as: :asana_oauth_callback
+  # Generic OmniAuth callback (Google, etc)
+  get "/auth/:provider/callback", to: "sessions#omniauth"
+
+  # Dashboard
+  get "/dashboard", to: "dashboard#index"
+
+  # Notifications
+  post "/notifications/dismiss", to: "notifications#dismiss"
+
+  # Settings routes
+  get "/settings", to: "settings#index"
+  namespace :settings do
+    get :organization
+    get :billing
+    get :account
+
+    # Password setup for OAuth users
+    get "password/setup", to: "/password_setup#new", as: :password_setup
+    post "password/setup", to: "/password_setup#create"
+    patch "password/setup", to: "/password_setup#create"
+
+    # Avatar management
+    resource :avatar, only: [:update, :destroy] do
+      post :revert
+    end
+
+    # API token management
+    resources :api_tokens, only: [:index, :new, :create, :show, :destroy]
+
+    namespace :integrations do
+      get :asana
+      post :sync_asana
+      delete :disconnect_asana
+
+      # Development-only debug endpoints
+      if Rails.env.development?
+        get :test_connection
+        get :list_workspaces
+      end
+    end
+  end
+
+  # Organization routes
+  resources :organizations, except: [:edit] do
+    resources :members, controller: 'organization_members'
+    resources :invitations, controller: 'organization_invitations'
+  end
+
+  # Organization switcher
+  patch "/switch_organization/:id", to: "organization_switcher#switch", as: :switch_organization
+
+  # Onboarding routes
+  resource :onboarding, only: [:new, :create], controller: 'onboarding' do
+    member do
+      patch :update
+      post :complete
+    end
+  end
+
+  # Invitation acceptance
+  get "/invitations/:token", to: "invitations#show", as: :invitation
+  post "/invitations/:token/accept", to: "invitations#accept", as: :accept_invitation
+
+  # Timer routes
+  post "/timer/start", to: "timer#start"
+  post "/timer/stop/:id", to: "timer#stop"
+
+  # Resource routes
+  resources :time_entries do
+    member do
+      post :stop
+      post :resume
+    end
+  end
+  resources :projects do
+    member do
+      patch :archive
+    end
+  end
+
+  # For future expansion
+  resources :clients, except: [:show]
+
+  # Asana tasks API (JSON only)
+  resources :asana_tasks, only: [:index]
+
+  # Admin area
+  namespace :admin do
+    root to: "dashboard#index"
+    resources :users
+    resources :organizations
+  end
+
+  # API routes
+  namespace :api do
+    namespace :v1 do
+      # User info
+      get 'users/me', to: 'users#me'
+      post 'users/regenerate_token', to: 'users#regenerate_token'
+
+      # Timer control
+      get 'timer/current', to: 'timer#current'
+      post 'timer/start', to: 'timer#start'
+      post 'timer/stop', to: 'timer#stop'
+
+      # Time entries
+      resources :time_entries do
+        member do
+          post :stop
+        end
+      end
+
+      # Projects
+      resources :projects, only: [:index, :show, :create, :update]
+    end
+  end
+end

@@ -1,0 +1,100 @@
+<%# app/views/settings/api_tokens/create.turbo_stream.erb %>
+<%# Show the new token (one-time display) %>
+<%= turbo_stream.replace "api_token_modal_content" do %>
+  <!-- Modal header -->
+  <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+    <div class="sm:flex sm:items-start">
+      <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+        <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Token Created Successfully!</h3>
+        <p class="text-sm text-gray-500 mt-2">Your new API token has been generated.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal body -->
+  <div class="px-4 pb-4 sm:px-6">
+    <!-- Warning banner -->
+    <div class="rounded-md bg-yellow-50 p-4 mb-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-yellow-800">Save this token now!</h3>
+          <div class="mt-2 text-sm text-yellow-700">
+            <p>For security reasons, you won't be able to see this token again. Make sure to copy it now and store it securely.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Token display with copy button -->
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Your API Token</label>
+        <div class="flex items-center gap-2">
+          <input type="text"
+                 readonly
+                 value="<%= @new_token %>"
+                 data-api-token-modal-target="tokenValue"
+                 class="flex-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm font-mono text-sm px-3 py-2">
+          <button type="button"
+                  data-action="click->api-token-modal#copyToken"
+                  class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span class="ml-2" data-api-token-modal-target="copyButtonText">Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Token details -->
+      <div class="bg-gray-50 rounded-md p-4">
+        <h4 class="text-sm font-medium text-gray-900 mb-2">Token Details</h4>
+        <dl class="space-y-1">
+          <div class="flex justify-between text-sm">
+            <dt class="text-gray-500">Name:</dt>
+            <dd class="text-gray-900 font-medium"><%= @api_token.name %></dd>
+          </div>
+          <div class="flex justify-between text-sm">
+            <dt class="text-gray-500">Created:</dt>
+            <dd class="text-gray-900"><%= @api_token.created_at.strftime("%B %d, %Y at %I:%M %p") %></dd>
+          </div>
+          <% if @api_token.expires_at %>
+            <div class="flex justify-between text-sm">
+              <dt class="text-gray-500">Expires:</dt>
+              <dd class="text-gray-900"><%= @api_token.expires_at.strftime("%B %d, %Y") %></dd>
+            </div>
+          <% else %>
+            <div class="flex justify-between text-sm">
+              <dt class="text-gray-500">Expires:</dt>
+              <dd class="text-gray-900">Never</dd>
+            </div>
+          <% end %>
+        </dl>
+      </div>
+
+      <!-- Done button -->
+      <div class="flex justify-end pt-4">
+        <button type="button"
+                data-action="click->api-token-modal#close"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+<%# Add the new token to the list %>
+<%= turbo_stream.prepend "api_tokens_list" do %>
+  <%= render "settings/api_tokens/token", token: @api_token %>
+<% end %>

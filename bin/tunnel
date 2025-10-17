@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Start Cloudflare tunnel for dev.onepunch.work
+echo "🚀 Starting Cloudflare tunnel for dev.onepunch.work..."
+echo "📍 Your Rails app will be accessible at: https://dev.onepunch.work"
+echo ""
+echo "Make sure Rails is running on localhost:2030 with:"
+echo "  bin/dev"
+echo ""
+echo "Press Ctrl+C to stop the tunnel"
+echo ""
+
+cloudflared tunnel --config .cloudflared/config.yml run

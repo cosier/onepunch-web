@@ -1,0 +1,397 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <span class="inline-block w-6 h-6 rounded-full"
+              style="background-color: <%= @project.color || '#6B7280' %>"></span>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900"><%= @project.name %></h1>
+          <% if @project.client.present? %>
+            <p class="text-gray-600 mt-1">Client: <%= @project.client.name %></p>
+          <% end %>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <!-- Timer Start Button -->
+        <%= render "shared/timer_button", project: @project %>
+
+        <%= link_to "Edit", edit_project_path(@project),
+            class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        <% unless @project.archived? %>
+          <%= link_to "Archive", archive_project_path(@project),
+              method: :patch,
+              data: { confirm: "Are you sure you want to archive this project?" },
+              class: "inline-flex items-center px-4 py-2 border border-yellow-300 shadow-sm text-sm font-medium rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Dashboard -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Today's Hours -->
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-purple-100">Today</h3>
+        <%= icon "clock", class: "h-5 w-5 text-purple-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@today_hours, precision: 1) %></p>
+      <p class="text-xs text-purple-200 mt-1">hours tracked</p>
+    </div>
+
+    <!-- This Week -->
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-blue-100">This Week</h3>
+        <%= icon "calendar", class: "h-5 w-5 text-blue-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@current_week_hours, precision: 1) %></p>
+      <p class="text-xs text-blue-200 mt-1">hours (<%= number_with_precision(@current_week_billable, precision: 1) %> billable)</p>
+    </div>
+
+    <!-- This Month -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-green-100">This Month</h3>
+        <%= icon "building", class: "h-5 w-5 text-green-200" %>
+      </div>
+      <p class="text-3xl font-bold"><%= number_with_precision(@current_month_hours, precision: 1) %></p>
+      <p class="text-xs text-green-200 mt-1">hours (<%= number_with_precision(@current_month_billable, precision: 1) %> billable)</p>
+      <% if @project.hourly_rate.present? && @current_month_billable > 0 %>
+        <div class="mt-3 pt-3 border-t border-green-400">
+          <p class="text-sm text-green-100">Revenue</p>
+          <p class="text-xl font-semibold">$<%= number_with_precision(@current_month_billable * @project.hourly_rate, precision: 2) %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tabbed Analytics View -->
+  <div class="bg-white rounded-xl shadow-lg mb-8" data-controller="tabs">
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Weekly View
+        </button>
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Monthly Calendar
+        </button>
+        <button data-tabs-target="tab"
+                data-action="click->tabs#switch"
+                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer">
+          Year Overview
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Panels -->
+    <!-- Weekly View Panel -->
+    <div data-tabs-target="panel" class="p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">This Week's Activity</h3>
+
+      <!-- Two Column Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Left Column: Daily Cards for Current Week -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Time Tracking</h4>
+          <div class="grid grid-cols-7 gap-2">
+            <% @daily_breakdown.each do |day| %>
+              <div class="<%= day[:date] == Date.current ? 'ring-2 ring-indigo-500' : '' %> bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-2 hover:shadow-md transition-all">
+                <div class="text-center">
+                  <p class="text-xs font-medium text-gray-600"><%= day[:day_short] %></p>
+                  <p class="text-xs text-gray-500"><%= day[:date].strftime('%d') %></p>
+                  <p class="text-xl font-bold text-gray-900 mt-1"><%= day[:hours].round(1) %></p>
+                  <p class="text-xs text-gray-500">hours</p>
+                  <% if day[:hours] > 0 %>
+                    <div class="mt-1">
+                      <div class="text-xs text-green-600"><%= ((day[:billable_hours] / day[:hours]) * 100).round %>%</div>
+                      <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-green-400 to-green-500"
+                             style="width: <%= ((day[:billable_hours] / day[:hours]) * 100).round %>%"></div>
+                      </div>
+                    </div>
+                  <% end %>
+                  <div class="mt-1 text-xs text-gray-500">
+                    <%= day[:entries] %> <%= day[:entries] == 1 ? 'entry' : 'entries' %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Right Column: Daily Summaries -->
+        <div>
+          <h4 class="text-sm font-medium text-gray-700 mb-3">Activity Summaries</h4>
+          <div class="space-y-2">
+            <% @daily_breakdown.each do |day| %>
+              <div class="flex items-start space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors <%= day[:date] == Date.current ? 'bg-indigo-50 border-l-2 border-indigo-500' : '' %>">
+                <div class="flex-shrink-0">
+                  <div class="text-xs font-medium text-gray-600 w-12">
+                    <%= day[:day_short] %>
+                    <span class="text-gray-400"><%= day[:date].strftime('%d') %></span>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <% if day[:has_entries] %>
+                    <p class="text-sm text-gray-700 break-words">
+                      <%= day[:summary].presence || "No description available" %>
+                    </p>
+                  <% else %>
+                    <p class="text-sm text-gray-400 italic">No activity recorded</p>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Bar Chart -->
+    <div class="h-64 flex items-end justify-between space-x-2 border-t border-gray-400">
+      <% max_hours = @weekly_breakdown.map { |w| w[:hours] }.max.to_f %>
+      <% max_hours = 1 if max_hours == 0 %>
+      <% @weekly_breakdown.each do |week| %>
+        <div class="flex-1 flex flex-col items-center">
+          <div class="w-full flex flex-col items-center space-y-1">
+            <% if week[:billable_hours] > 0 || week[:hours] > 0 %>
+              <div class="relative w-full flex flex-col items-center">
+                <!-- Total hours bar -->
+                <div class="w-12 bg-gradient-to-t from-indigo-500 to-indigo-400 rounded-t transition-all hover:from-indigo-600 hover:to-indigo-500"
+                     style="height: <%= [(week[:hours] / max_hours * 200).to_i, 4].max %>px"
+                     title="<%= week[:hours].round(1) %> total hours">
+                  <!-- Billable hours overlay -->
+                  <% if week[:billable_hours] > 0 %>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-green-500 to-green-400 rounded-t"
+                         style="height: <%= (week[:billable_hours] / week[:hours] * 100).to_i %>%"
+                         title="<%= week[:billable_hours].round(1) %> billable hours">
+                    </div>
+                  <% end %>
+                </div>
+                <span class="text-xs text-gray-600 mt-1 font-semibold"><%= week[:hours].round(1) %></span>
+              </div>
+            <% else %>
+              <div class="w-12 h-1 bg-gray-200 rounded"></div>
+              <span class="text-xs text-gray-400 mt-1">0</span>
+            <% end %>
+          </div>
+          <span class="text-xs text-gray-500 mt-2"><%= week[:week] %></span>
+        </div>
+      <% end %>
+    </div>
+    <div class="flex items-center justify-center mt-6 space-x-6 text-xs">
+      <div class="flex items-center">
+        <div class="w-3 h-3 bg-gradient-to-br from-indigo-500 to-indigo-400 rounded mr-2"></div>
+        <span class="text-gray-600">Total Hours</span>
+      </div>
+      <div class="flex items-center">
+        <div class="w-3 h-3 bg-gradient-to-br from-green-500 to-green-400 rounded mr-2"></div>
+        <span class="text-gray-600">Billable Hours</span>
+      </div>
+    </div>
+
+    <!-- Monthly Calendar Panel -->
+    <div data-tabs-target="panel" class="p-6 hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-900"><%= @calendar_month.strftime('%B %Y') %></h3>
+        <div class="flex space-x-2">
+          <%= link_to project_path(@project, month: (@calendar_month - 1.month).to_s),
+              class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
+            <%= icon "chevron-left", class: "w-5 h-5" %>
+          <% end %>
+          <%= link_to project_path(@project, month: (@calendar_month + 1.month).to_s),
+              class: "p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" do %>
+            <%= icon "chevron-right", class: "w-5 h-5" %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Calendar Grid -->
+      <div class="grid grid-cols-7 gap-1">
+        <!-- Day Headers -->
+        <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+          <div class="text-center text-xs font-semibold text-gray-700 p-2">
+            <%= day %>
+          </div>
+        <% end %>
+
+        <!-- Calendar Days -->
+        <% (@calendar_start..@calendar_end).each do |date| %>
+          <% hours = @days_with_entries[date] || 0 %>
+          <% is_current_month = date.month == @calendar_month.month %>
+          <% is_today = date == Date.current %>
+
+          <div class="<%= is_current_month ? 'bg-white' : 'bg-gray-50' %> <%= is_today ? 'ring-2 ring-indigo-500' : 'border border-gray-200' %> rounded-lg p-2 min-h-[80px] hover:shadow-md transition-all">
+            <div class="text-xs font-medium <%= is_current_month ? 'text-gray-900' : 'text-gray-400' %>">
+              <%= date.day %>
+            </div>
+            <% if hours > 0 %>
+              <div class="mt-1">
+                <div class="text-lg font-bold <%= is_current_month ? 'text-indigo-600' : 'text-gray-400' %>">
+                  <%= hours.round(1) %>
+                </div>
+                <div class="text-xs <%= is_current_month ? 'text-gray-600' : 'text-gray-400' %>">hours</div>
+                <!-- Visual indicator bar -->
+                <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-indigo-400 to-indigo-500"
+                       style="width: <%= [hours * 12.5, 100].min %>%"></div>
+                </div>
+              </div>
+            <% elsif is_current_month %>
+              <div class="mt-1 text-xs text-gray-400 italic">No time</div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Monthly Summary -->
+      <div class="mt-6 grid grid-cols-3 gap-4">
+        <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-indigo-700">Total Days Worked</p>
+          <p class="text-2xl font-bold text-indigo-900"><%= @days_with_entries.select { |d, h| d.month == @calendar_month.month && h > 0 }.count %></p>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-green-700">Total Hours</p>
+          <p class="text-2xl font-bold text-green-900"><%= @days_with_entries.select { |d, h| d.month == @calendar_month.month }.values.sum.round(1) %></p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+          <p class="text-sm font-medium text-purple-700">Average per Day</p>
+          <% days_worked = @days_with_entries.select { |d, h| d.month == @calendar_month.month && h > 0 }.count %>
+          <p class="text-2xl font-bold text-purple-900">
+            <%= days_worked > 0 ? (@days_with_entries.select { |d, h| d.month == @calendar_month.month }.values.sum / days_worked).round(1) : 0 %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Year Overview Panel -->
+    <div data-tabs-target="panel" class="p-6 hidden">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6">Year Overview - <%= Date.current.year %></h3>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+      <% @monthly_breakdown.each do |month| %>
+        <div class="relative group">
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 hover:shadow-md transition-all hover:scale-105">
+            <h4 class="text-xs font-medium text-gray-600 mb-2"><%= month[:month] %></h4>
+            <p class="text-lg font-bold text-gray-900"><%= month[:hours].round(1) %></p>
+            <p class="text-xs text-gray-500">hours</p>
+            <% if month[:hours] > 0 %>
+              <div class="mt-2 pt-2 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-green-600"><%= ((month[:billable_hours] / month[:hours]) * 100).round %>%</span>
+                  <span class="text-xs text-gray-500">billable</span>
+                </div>
+                <!-- Visual indicator bar -->
+                <div class="mt-1 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-green-400 to-green-500"
+                       style="width: <%= ((month[:billable_hours] / month[:hours]) * 100).round %>%"></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    </div>
+  </div>
+
+  <!-- Project Details -->
+  <div class="bg-white rounded-lg shadow mb-8">
+    <div class="px-6 py-4">
+      <dl class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1">
+            <% status_classes = {
+              'active' => 'bg-green-100 text-green-800',
+              'on_hold' => 'bg-yellow-100 text-yellow-800',
+              'completed' => 'bg-blue-100 text-blue-800'
+            } %>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <%= status_classes[@project.status.to_s] || 'bg-gray-100 text-gray-800' %>">
+              <%= @project.status&.humanize || 'Active' %>
+            </span>
+          </dd>
+        </div>
+
+        <% if @project.hourly_rate.present? %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Hourly Rate</dt>
+            <dd class="mt-1 text-sm text-gray-900">$<%= @project.hourly_rate %></dd>
+          </div>
+        <% end %>
+
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Total Time</dt>
+          <dd class="mt-1 text-sm text-gray-900 font-mono">
+            <%= format_duration(@total_time) %>
+          </dd>
+        </div>
+
+        <% if @billable_time > 0 %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Billable Time</dt>
+            <dd class="mt-1 text-sm text-gray-900 font-mono">
+              <%= format_duration(@billable_time) %>
+            </dd>
+          </div>
+        <% end %>
+
+        <% if @project.hourly_rate.present? && @billable_time > 0 %>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">Estimated Value</dt>
+            <dd class="mt-1 text-sm text-gray-900">
+              $<%= number_with_precision((@billable_time.to_f / 3600) * @project.hourly_rate, precision: 2) %>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+
+      <% if @project.description.present? %>
+        <div class="mt-6">
+          <dt class="text-sm font-medium text-gray-500">Description</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= simple_format(@project.description) %></dd>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Time Entries with Modal -->
+  <div data-controller="modal">
+    <!-- Time Entries Section -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-gray-900">Recent Time Entries</h3>
+          <%= link_to "View all entries", time_entries_path(project_id: @project.id),
+              class: "text-sm text-indigo-600 hover:text-indigo-500 font-medium" %>
+        </div>
+      </div>
+
+      <% if @time_entries.any? %>
+        <div id="time-entries-list" class="divide-y divide-gray-200">
+          <% @time_entries.each do |entry| %>
+            <%= render "time_entries/entry_card", entry: entry %>
+          <% end %>
+        </div>
+      <% else %>
+      <div class="px-6 py-12 text-center">
+        <%= icon "clock", class: "mx-auto h-12 w-12 text-gray-400" %>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No time entries yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Start tracking time on this project to see entries here.</p>
+        <div class="mt-6">
+          <%= link_to "Go to Dashboard", dashboard_path,
+              class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    <% end %>
+    </div>
+
+    <!-- Include the modal inside the controller scope -->
+    <%= render "shared/modal" %>
+  </div>
+</div>

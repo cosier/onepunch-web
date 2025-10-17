@@ -1,0 +1,93 @@
+<nav class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <!-- Left section -->
+      <div class="flex items-center">
+        <%= link_to dashboard_path, class: "flex items-center space-x-2" do %>
+          <span class="text-2xl font-bold text-indigo-600">⚡</span>
+          <span class="text-xl font-semibold text-gray-900">OnePunch</span>
+        <% end %>
+      </div>
+
+      <!-- Center navigation -->
+      <div class="hidden md:flex items-center space-x-8">
+        <%= link_to "Dashboard", dashboard_path,
+            class: "text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium #{'text-indigo-600' if current_page?(dashboard_path)}" %>
+        <%= link_to "Time Entries", time_entries_path,
+            class: "text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium #{'text-indigo-600' if current_page?(time_entries_path)}" %>
+        <%= link_to "Projects", projects_path,
+            class: "text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium #{'text-indigo-600' if current_page?(projects_path)}" %>
+      </div>
+
+      <!-- Right section -->
+      <div class="flex items-center space-x-4">
+        <!-- Organization switcher -->
+        <% if current_user && current_user.organizations.count > 1 %>
+          <%= render 'shared/organization_switcher' %>
+        <% end %>
+
+        <!-- User menu -->
+        <div class="relative" data-controller="dropdown">
+          <button data-action="click->dropdown#toggle"
+                  class="flex items-center space-x-2 text-gray-700 hover:text-indigo-600">
+            <span class="user-avatar">
+              <%= render 'shared/avatar', user: current_user, size: 'small' %>
+            </span>
+            <span class="text-sm font-medium"><%= current_user.full_name %></span>
+            <%= icon "chevron-down", class: "w-4 h-4" %>
+          </button>
+
+          <div data-dropdown-target="menu"
+               class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <!-- User info header -->
+            <div class="px-4 py-3 border-b border-gray-200">
+              <div class="flex items-center space-x-3">
+                <span class="user-avatar">
+                  <%= render 'shared/avatar', user: current_user, size: 'medium' %>
+                </span>
+                <div>
+                  <p class="text-sm font-medium text-gray-900"><%= current_user.full_name %></p>
+                  <p class="text-xs text-gray-500"><%= current_user.email %></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menu items -->
+            <div class="py-2">
+              <%= link_to settings_path, class: "w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors" do %>
+                <%= icon "settings", class: "w-5 h-5 text-gray-400" %>
+                <span>Account Settings</span>
+              <% end %>
+
+              <%= link_to organizations_path, class: "w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3 transition-colors" do %>
+                <%= icon "building", class: "w-5 h-5 text-gray-400" %>
+                <span>My Organizations</span>
+              <% end %>
+            </div>
+
+            <!-- Sign out section -->
+            <div class="border-t border-gray-200 pt-2">
+              <%= link_to logout_path, data: { turbo_method: :delete },
+                  class: "w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-3 transition-colors" do %>
+                <%= icon "log-out", class: "w-5 h-5" %>
+                <span>Sign out</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="md:hidden">
+    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200">
+      <%= link_to "Dashboard", dashboard_path,
+          class: "block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 #{'text-indigo-600' if current_page?(dashboard_path)}" %>
+      <%= link_to "Time Entries", time_entries_path,
+          class: "block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 #{'text-indigo-600' if current_page?(time_entries_path)}" %>
+      <%= link_to "Projects", projects_path,
+          class: "block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 #{'text-indigo-600' if current_page?(projects_path)}" %>
+    </div>
+  </div>
+</nav>

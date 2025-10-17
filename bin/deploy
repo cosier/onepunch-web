@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+# Run kamal deploy (secrets are handled by .kamal/secrets file)
+bundle exec kamal deploy "$@"

@@ -1,0 +1,25 @@
+<%
+  user ||= current_user
+  size ||= 'medium'
+  extra_classes = local_assigns[:class] || ''
+
+  sizes = {
+    'small' => 'h-8 w-8 text-xs',
+    'medium' => 'h-10 w-10 text-sm',
+    'large' => 'h-[60px] w-[60px] text-base',
+    'xl' => 'h-24 w-24 text-xl',
+    'xxl' => 'h-[150px] w-[150px] text-2xl'
+  }
+
+  size_class = sizes[size] || sizes['medium']
+  avatar_classes = "#{size_class} rounded-full object-cover #{extra_classes}"
+  initials_classes = "#{size_class} bg-indigo-600 rounded-full flex items-center justify-center text-white font-medium #{extra_classes}"
+%>
+
+<% if user.active_avatar && user.active_avatar.image.attached? %>
+  <%= image_tag user.active_avatar.image, class: avatar_classes, alt: user.full_name, loading: "lazy" %>
+<% elsif user.respond_to?(:avatar_url) && user.avatar_url.present? %>
+  <%= image_tag user.avatar_url, class: avatar_classes, alt: user.full_name, loading: "lazy" %>
+<% else %>
+  <div class="<%= initials_classes %>"><%= user.initials %></div>
+<% end %>

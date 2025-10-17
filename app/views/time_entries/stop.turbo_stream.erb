@@ -1,0 +1,8 @@
+<%# Replace the entry with the updated version (now stopped) %>
+<%= turbo_stream.replace(@time_entry) do %>
+  <%= render "time_entries/entry_card", entry: @time_entry %>
+<% end %>
+
+<%# Show success message %>
+<%= turbo_stream.prepend "flash", partial: "shared/flash",
+    locals: { notice: "Timer stopped successfully.", alert: nil } %>

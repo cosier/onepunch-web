@@ -32,6 +32,7 @@ env:
     RAILS_SERVE_STATIC_FILES: "true"
   secret:
     - RAILS_MASTER_KEY
+    - SECRET_KEY_BASE
     # Note: All other secrets (SMTP, Google, Stripe) are now in encrypted credentials
     # Only RAILS_MASTER_KEY is needed to decrypt config/credentials/production.yml.enc
 

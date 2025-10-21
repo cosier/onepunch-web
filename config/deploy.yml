@@ -38,7 +38,7 @@ env:
 # Use kamal-proxy v2
 proxy:
   ssl: false
-  host: onepunch.work
+  host: www.onepunch.work
   forward_headers: true
 
 # SSH configuration

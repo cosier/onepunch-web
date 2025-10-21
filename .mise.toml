@@ -4,7 +4,6 @@
 [tools]
 ruby = "3.4.5"
 node = "24.6.0"
-postgres = "15"
 
 [env]
 # Rails environment

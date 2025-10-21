@@ -49,7 +49,7 @@ class OauthAccessToken < ApplicationRecord
       expires_in: expires_in_seconds,
       refresh_token: refresh_token,
       scope: scopes || "api",
-      created_at: created_at.to_i
+      created_at: created_at.iso8601 # ISO8601 format for CLI compatibility
     }
   end
 

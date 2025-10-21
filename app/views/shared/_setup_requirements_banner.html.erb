@@ -18,7 +18,7 @@
                   <ul class="list-disc list-inside space-y-1">
                     <% current_user.incomplete_requirements.each do |req| %>
                       <li>
-                        <%= link_to req[:name], req[:path], class: "underline hover:text-yellow-900" %>
+                        <%= link_to req[:name], req[:path], class: "underline hover:text-yellow-900", data: { turbo_frame: "_top" } %>
                       </li>
                     <% end %>
                   </ul>

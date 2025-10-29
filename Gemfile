@@ -76,7 +76,7 @@ gem "view_component"
 gem "rails_icons"
 
 # Explicitly add date gem to fix Docker build issues
-gem "date", "~> 3.3.4"
+gem "date", "~> 3.5.0"
 
 # Deployment
 gem "kamal", require: false
